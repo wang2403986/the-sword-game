@@ -1,0 +1,95 @@
+@CHARSET "UTF-8";
+@import url("https://fonts.googleapis.com/css?family=Ranchers");
+html, body {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Ranchers', sans-serif;
+}
+
+body {
+  background-image: url("assets/materials/index.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+div {
+  user-select: none;
+}
+
+.label-death {
+  display: none;
+  z-index: 10;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10rem;
+  color: white;
+}
+.label-death.active {
+  display: block;
+}
+
+.label-death-bg {
+  content: " ";
+  z-index: 9;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 20rem;
+  transform: translate(-50%, -50%);
+  transition: all 2s ease;
+  background-color: black;
+  opacity: 0.3;
+}
+.label-death-bg.active {
+  top: 50%;
+  width: 100%;
+  height: 100%;
+}
+
+.label-score {
+  z-index: 10;
+  position: absolute;
+  left: 5vw;
+  bottom: 5vh;
+  font-size: 10rem;
+  transition: all 500ms ease;
+  color: black;
+}
+.label-score.stopped {
+  top: 50%;
+  left: 50%;
+  bottom: auto;
+  font-size: 15rem;
+  transform: translate(-50%, -50%);
+  color: white;
+}
+
+.label-restart {
+  display: none;
+  z-index: 100;
+  position: absolute;
+  padding: 1rem 2rem;
+  top: 75%;
+  left: 50%;
+  width: 100%;
+  text-align: center;
+  font-size: 5rem;
+  color: white;
+  transform: translate(-50%, -50%);
+}
+.label-restart.active {
+  display: block;
+}
