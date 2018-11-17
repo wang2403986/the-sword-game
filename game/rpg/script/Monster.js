@@ -11,21 +11,22 @@
 				},
 				boundingBox:{x:20, y:20, z:20},
 				topBoard:{height:40, scale:{x:30, y:3, z:1}},
-				scale:.2//.2 .05
+				scale:.16//.2 .15 .05 scale:.08
 		};
 		loadModel(model, onLoaded);
 		// model
 		var model2 = { name:'Monster2',
-				url:'../assets/models/hou_zi.FBX',
-				animation:'walk', animationsFiles:{
-					free: '../assets/models/hou_zi@free.FBX',
-					die: '../assets/models/hou_zi@die.FBX',
-					attack: '../assets/models/hou_zi@attack.FBX'
+				url:'../assets/models/hu.FBX',
+				animation:'free', animationsFiles:{
+					walk: '../assets/models/hu@run.FBX',
+					die: '../assets/models/hu@die.FBX',
+					attack: '../assets/models/hu@attack.FBX'
 				},
-				boundingBox:{x:20, y:20, z:20},
+				boundingBox:{x:40, y:100, z:40},
 				position:{x:193, y: 0, z: 333},
-				topBoard:{height:30, scale:{x:30, y:3, z:1}},
-				scale:.12//.2 .05
+				topBoard:{height:100, scale:{x:80, y:8, z:1}},
+				selectionScale:4,
+				radius: 1 , scale:.05//
 		};
 		loadModel(model2, onLoaded2);
 		// 己方单位
@@ -53,7 +54,7 @@
 	    		object.playAction('free');
 		    	object.position.copy(team1Positions[i])//rand(20,480),0, rand(20,480)
 		    	scene.add( object );
-		    	new MonsterEntity().setModel(object);
+		    	new MonsterEntity().setModel(object).setRadius(2);
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		    	new iPhysics(object.entity);
 		    	addUpdater(object.entity);
@@ -74,7 +75,7 @@
 	    		object.playAction('free');
 	    		object.position.copy(team2Positions[i]);
 		    	scene.add( object );
-		    	new MonsterEntity().setModel(object);
+		    	new MonsterEntity().setModel(object).setRadius(2.5);
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model2.topBoard);
 		    	new iPhysics(object.entity);
 		    	addUpdater(object.entity);
@@ -85,7 +86,7 @@
 	MonsterEntity.prototype =Object.create(iEntity.prototype);
 	function MonsterEntity() {
 		iEntity.call(this, null);
-		var walkSpeed=this.speed=60/4///4;          //移动速度
+		var walkSpeed=this.speed=100/4///4;          //移动速度
 	    var actRestTme =17000;            //更换待机指令的间隔时间
 	    var lastActTime;          //最近一次指令时间
 	}

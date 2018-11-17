@@ -6,6 +6,6 @@
 	MusicPlayer.currentTime = 0;
 	MusicPlayer.crossOrigin = "anonymous";
 	MusicPlayer.loop="loop";
-	MusicPlayer.src = '../assets/audio/hun_li.mp3';
+	MusicPlayer.src = '../assets/audio/xiangZhiMoWen.mp3';
 	MusicPlayer.play();
 })();

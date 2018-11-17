@@ -10,7 +10,7 @@
 		animationsFiles:anims,
 		material:{alphaTest:.5},
 		boundingBox:{x:60, y:160, z:60},
-		scale:.05,
+		scale:.04,
 		position:{x:281.8434354806188, y: 0, z: 259.4504251984771},
 		topBoard:{height:280, scale:{x:100, y:10, z:1}},
 		selectionScale:3
@@ -35,7 +35,7 @@
 		camera.setSource&&camera.setSource(player);
 		//var Sprite= textSprite({message:'ÍõÌÏ11',HP:100});
 		//player.add(Sprite);
-		new iEntity().setModel(object);
+		new iEntity().setModel(object).setRadius(1.5);
 		object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		new iPhysics(object.entity);
 		addUpdater(object.entity);

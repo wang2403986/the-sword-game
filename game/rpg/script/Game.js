@@ -132,14 +132,21 @@
 			if (window.terrin===undefined) return;
 			//if(!window.terrin2) return;
 			var intersects=raycaster.intersectBoxs( raycaster_models );
+			var isAttack=true;
 			if(intersects.length > 0 ) {
 				var target = intersects[0].object._model.entity, pos = target.pos;
 				var entity = window.cursorEntity;
 				entity.position.set(pos.x,pos.y,pos.z);
 				entity.visible=true; entity.lifeTime=now + 800;
 				for (var i=0;i<selections.length;i++) {
-					if(selections[i].physics&& selections[i]!==target)
-					selections[i].physics.setAttackTarget(target);
+					if(selections[i].physics&& selections[i]!==target ){
+						if(selections[i].teamId!==target.teamId)
+							selections[i].physics.setAttackTarget(target);
+						else {
+							selections[i].physics.autoFindPathMax = now + 30*1000;
+							selections[i].physics.findPath(vec1.copy(target.pos),0);
+						}
+					}
 				}
 				return;
 			}
@@ -150,11 +157,12 @@
 				var entity = window.cursorEntity;
 				entity.position.set(pos.x,pos.y,pos.z);
 				entity.visible=true; entity.lifeTime=now + 800;
-				//if(selection && !selection._model.entity.isDead)
-					//selection._model.entity.physics.findPath(pos);
+				var maxRadius=0;
 				for (var i=0;i<selections.length;i++) {
-					if(selections[i].physics)
-					selections[i].physics.autoFindPathMax = now + 30*1000;
+					if(selections[i].physics){
+						selections[i].physics.autoFindPathMax = now + 30*1000;
+						if(selections[i].radius>maxRadius) maxRadius=selections[i].radius
+					}
 				}
 				var centerX = pos.x,centerY=pos.z;
 				var size =selections.length;
@@ -171,13 +179,13 @@
 					left=-(r>>0)+1;
 					rigt=(r>>0);
 				}
-				var c=0;
+				var c=0; maxRadius=4*maxRadius;
 				for (var i=left;i<=rigt;i++)
 					for (var j=left;j<=rigt;j++) {
 						if(c>=size) break;
 						if(selections[c].physics){
 							var physics=selections[c].physics;
-							physics.findPath(vec1.set(centerX+16*i,0,centerY+16*j),0);
+							physics.findPath(vec1.set(centerX+maxRadius*i,0,centerY+maxRadius*j),0);
 						}
 						c++;
 					}

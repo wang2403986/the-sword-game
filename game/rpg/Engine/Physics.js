@@ -41,13 +41,13 @@
 	    //地形高度
 	    //this.updateHeight(fElapse);
 	    this.smoothRotate(fElapse);
-	    if(this.state===Define.PS_ATTACK)
+	    if(this.state===PS_ATTACK)
 	    	this.updateAttackState();
 	    else if(this.autoMove)
 	    	this.updateMoveState();
 	    else if(this.state===PS_FREE||this.state===PS_MOVE)
 	    	this.updateFreeState();
-	    else if(this.state===Define.PS_SKILL)
+	    else if(this.state===PS_SKILL)
 	    	this.updateSkillState();
 	}
 	iPhysics.prototype.setAttackTarget=function(target){// TODO
@@ -81,7 +81,7 @@
 		this.autoMove = false;//stop move state
 		this.findPathDiscarded = true;//stop findPath
 		this.stopAttack()//stop Attack
-		this.setState(Define.PS_SKILL);
+		this.setState(PS_SKILL);
 		if(this.skillTarget.pos)
 			new BurstEffect(this.skillTarget.pos);
 		console.log('startSkill')
@@ -97,6 +97,7 @@
 		this.autoMove = false;//stop move state
 		this.setState(PS_FREE);
 		this.attackTarget=null;
+		this.isLockTarget=false;
 	}
 	iPhysics.prototype.updateSkillState = function() {
 		if (now- this.skillStartTime>2600){
@@ -106,7 +107,8 @@
 	iPhysics.prototype.startAttack=function() {
 		this.autoMove = false;//stop move state
 		this.findPathDiscarded = true;//stop findPath
-		this.setState(Define.PS_ATTACK);
+		if(this.isLockTarget) this.stopPosition.copy(this.source.pos);
+		this.setState(PS_ATTACK);
 		this.attackStartTime = now;
 		var targetPhysics=this.attackTarget.physics;
 		if(targetPhysics&& !targetPhysics.attacker) targetPhysics.attacker=this.source;
@@ -131,7 +133,7 @@
 	}
 	iPhysics.prototype.stopMoveState=function() {
 		this.autoMove=false;
-		this.setState(Define.PS_FREE);
+		this.setState(PS_FREE);
 	}
 	iPhysics.prototype.updateAttackState = function() {
 		//定时寻路
@@ -150,7 +152,7 @@
 			this.findPath(this.destPosition);
 		} else if(distance>attackRange*attackRange){// stop attack or Pursuit
 			this.stopAttack();
-			if(campDistance>chaseRange*chaseRange &&auto)
+			if((campDistance>chaseRange*chaseRange) &&auto)
 				this.findPath(this.destPosition);
 		} else if (attackTarget.isDead) {
 			this.stopAttack();
@@ -214,8 +216,9 @@
 		this.nextPos.copy(this.source.pos);
 		if(type===playerFindPathType) {
 			this.destPosition.copy(dest),
-			this.stopPosition.copy(dest),
-			this.stopAttack()
+			this.stopPosition.copy(dest);
+			if(this.state===PS_ATTACK) this.stopAttack();
+			this.attackTarget=this.isLockTarget=false;
 			this.skillTarget=false;
 		}
 		this.findPathType=type;
@@ -274,8 +277,8 @@
 			if(Math.abs(path[endIndex-1]-this.stopPosition.x)<=10 &&
 					Math.abs(path[endIndex]-this.stopPosition.z)<=10)
 				return;
+			this.stopAttack();
 		}
-		if(this.state===PS_ATTACK) this.stopAttack();
 
 		var m_pSource = this.source;
 		this.moveToElapse=0;
@@ -360,13 +363,17 @@
 	}
 	iPhysics.prototype.isContinueToFollow= function(needsProceed) {
 		if (this.attackTarget) {
+			var targetPos = this.attackTarget.pos;
 			if(this.isLockTarget){
-				this.stopPosition.copy(this.attackTarget.pos);
-				this.destPosition.copy(this.attackTarget.pos);
+				this.stopPosition.copy(targetPos);
+				this.destPosition.copy(targetPos);
 			}
-			return this.findPathPosition.copy(this.attackTarget.pos);
+			return this.findPathPosition.copy(targetPos);
 		} else if(this.skillTarget){
-			return this.destPosition.copy(this.findPathPosition.copy(this.skillTarget.pos));
+			var targetPos = this.skillTarget.pos;
+			this.stopPosition.copy(targetPos);
+			this.destPosition.copy(targetPos);
+			return this.findPathPosition.copy(targetPos);
 		}
 	};
 	iPhysics.prototype.getCollisionObject= function(preferMovingUnit) {
@@ -382,8 +389,12 @@
 	iPhysics.prototype.onMoveToFinished= function () {};
 
 	iPhysics.prototype.finishAutoMove= function (noPathFound) {
-		if (noPathFound && this.findPathType===playerFindPathType){
-			this.stopPosition.copy(this.source.pos);
+		if (noPathFound){
+			if (this.findPathType===playerFindPathType)
+				this.stopPosition.copy(this.source.pos);
+			if (this.findPathType===autoFindPathType){
+				return;
+			}
 		}
 	    if (this.autoMove) {
 	    	this.autoMove = false, this.setState(PS_FREE);

@@ -12,7 +12,7 @@ function init() {
 	container = document.createElement( 'div' );
 	document.body.appendChild( container );
 	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-	camera.position.set( 304, 140, 300 );
+	camera.position.set( 314, 65, 290 );
 	controls = new THREE.OrbitControls( camera );
 	controls.target.set( 179,  -213,  102 );
 	controls.enableRotate=false;controls.update();
@@ -40,12 +40,12 @@ function init() {
 	mesh.receiveShadow = false;
 	
 	scene.add( mesh );
-	var grid = new THREE.GridHelper( worldSize.x, 20, 0x000000, 0x000000 );
+	var grid = new THREE.GridHelper( worldSize.x, worldSize.x, 0x000000, 0x000000 );
 	grid.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
-	grid.material.opacity = 0.2;
+	grid.material.opacity = 0.5;
 	grid.material.transparent = true;
 	terrin = mesh;
-	//scene.add( grid );
+	scene.add( grid );
 
 	renderer = new THREE.WebGLRenderer( { antialias: false } );
 	renderer.setPixelRatio( window.devicePixelRatio );

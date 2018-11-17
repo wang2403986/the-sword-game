@@ -9,7 +9,7 @@
 				boundingBox:{x:300, y:300, z:300},
 				position:{x:200, y:0, z:200},
 				selectionScale:12,
-				scale:.05//.2 .05
+				scale:.04//.2 .05
 		},
 		{ name:'tree2',
 			url:'../assets/models/Building2.FBX',
@@ -20,7 +20,7 @@
 			boundingBox:{x:300, y:300, z:300},
 			position:{x:320, y:0, z:200},
 			selectionScale:12,
-			scale:.05//.2 .05
+			scale:.04//.2 .05
 		},
 		{ name:'tree1',
 			url:'../assets/models/Building1.FBX',
@@ -30,7 +30,7 @@
 			boundingBox:{x:300, y:300, z:300},
 			position:{x:260, y:0, z:240},
 			selectionScale:12,
-			scale:.05//.2 .05
+			scale:.04//.2 .05
 		}
 		];
 		for(var i=0;i< models.length;i++){
@@ -49,7 +49,7 @@
 	    		//object.playAction('free');
 		    	//object.position.set(200,0, 200)
 		    	scene.add( object );
-		    	new iEntity().setModel(object).radius = 8;
+		    	new iEntity().setModel(object).setRadius(5);
 		    	//new iPhysics(object.entity);
 		    	//addUpdater(object.entity);
 		    	addTeamUnit(object.entity, 1, 1);

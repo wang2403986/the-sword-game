@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html style="margin:0;">
 <head>
 <meta charset="UTF-8">
 <title>3D御剑</title>
-<link href="../index.css" rel="stylesheet">
+<!-- <link href="../index.css" rel="stylesheet"> -->
 <script type="x-shader/x-vertex" id="ParticleSystem-fragmentShader">
       uniform vec3 color;
       uniform vec3 endColor;
@@ -84,10 +84,10 @@
       }
 </script>
 </head>
-<body>
-<canvas id="mini_map" width="500" height="500" style="width:500px;height:500px;position:absolute;"></canvas>
+<body style="margin:0;">
+<canvas id="mini_map" width="256" height="256" style="width:256px;height:256px;position:absolute;bottom:0;"></canvas>
 <script src="../../js/KeyboardState.js"></script>
-<script src="../../js/jquery.min.js" type="text/javascript"></script>
+<!-- <script src="../../js/jquery.min.js" type="text/javascript"></script> -->
 <script src="../../js/dat.gui.min.js" type="text/javascript"></script>
 <script src="../../js/three.js" type="text/javascript"></script>
 <script src="../../js/loaders/FBXLoader.js" type="text/javascript"></script>
@@ -114,5 +114,6 @@
 <script src="script/Trees.js" type="text/javascript"></script>
 <script src="script/Effects.js" type="text/javascript"></script>
 <script src="script/TopBoard.js" type="text/javascript"></script>
+<script src="script/MiniMap.js" type="text/javascript"></script>
 </body>
 </html>

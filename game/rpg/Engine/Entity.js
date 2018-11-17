@@ -10,11 +10,7 @@
 	iEntity.array1=[];
 	function iEntity() {
 		this.id = generateID();
-		this.chaseRange= 30, this.attackRange= 3*1.42 + 3;
-		this.autoAttackRange= 19;//主动攻击范围
-		this._autoAttackDelay = g_autoAttackDelay; g_autoAttackDelay += g_autoAttackDelayDelta;
-		this._lastAutoAttackTime = Date.now();
-
+		this.maxHP=100;//满血生命值
 		this.HP=100;//生命值
 		this.MP=100;//魔法值
 		this.EXP=0;//经验
@@ -22,13 +18,23 @@
 		this.strength=10;//力量
 		this.intelligence=10;//天赋
 		this.agility=10;//敏捷
-		this.radius= 3;//0.5~10, default 4
+
+		this.radius= 3;//0.5~10, default 3
 		this.range= this.radius*1.42;
+		this.chaseRange= 44, this.attackRange= this.range + 3;
+		this.autoAttackRange= 28;//主动攻击范围
+		this._autoAttackDelay = g_autoAttackDelay; g_autoAttackDelay += g_autoAttackDelayDelta;
+		this._lastAutoAttackTime = Date.now();
+
 		this.speed =25 //25;
 		this.rotationSpeed = 10;
 		this.nearbyUnits = [];
 		this.attackTargets=this.nearbyUnits;
 	}
+	iEntity.prototype.setRadius=function(r) {
+		this.radius=r; this.range= this.radius*1.42; this.attackRange= this.range + 3;
+		return this;
+	};
 	iEntity.prototype.playAction=function(e,a,b,c,d) { this.model.playAction(e,a,b,c,d); }
 	
 	iEntity.prototype.update=function(elapse) {
@@ -37,7 +43,7 @@
 				this.onDeadTime = now;
 				this.onDead();
 			}
-			if (now-this.onDeadTime>5000){
+			if (now-this.onDeadTime>2000){
 				removeTeamUnit(this);
 				removeUpdater(this);
 				scene.remove(this.model);
@@ -106,7 +112,9 @@
 	}
 	iEntity.prototype.onHit=function() {
 		this.HP -= 10;
-		this.topboard.update(this.HP/100);
+		if(this.topboard){
+			this.topboard.update(this.HP/this.maxHP);
+		}
 	};
 	iEntity.prototype.onDead=function() {
 		this.isDead = 1;
