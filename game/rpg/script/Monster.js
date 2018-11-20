@@ -44,42 +44,58 @@
 			var i = 0, original=object;//55
 		    for(i=0;i<5;i++) {
 		    	object=cloneFbx(original);
-		    	var bbox = new THREE.Mesh(original.boundingBoxGeometry, MeshBlackMaterial );
-				bbox._model=object, bbox.matrixWorld=object.matrixWorld;
+		    	var bbox = { geometry:original.boundingBoxGeometry, matrixWorld:object.matrixWorld };
+				bbox._model=object;
 				object.bbox=bbox;
 				raycaster_models.push(bbox);
 		    	
 		    	object.mixer = new THREE.AnimationMixer( object );
 	    		mixers.push( object.mixer );
 	    		object.playAction('free');
-		    	object.position.copy(team1Positions[i])//rand(20,480),0, rand(20,480)
+	    		var j = i>=5?i%5:i;
+		    	object.position.copy(team1Positions[j])//rand(20,480),0, rand(20,480)
 		    	scene.add( object );
 		    	new MonsterEntity().setModel(object).setRadius(2);
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		    	new iPhysics(object.entity);
 		    	addUpdater(object.entity);
 		    	addTeamUnit(object.entity, 1, 1);
+//		    	object.entity.audio=new THREE.PositionalAudio( listener );
+//		    	object.add(object.entity.audio);
+//		    	loadAudio( '../assets/audio/s1.mp3', (function(object){return function ( buffer ) {
+//					object.entity.audio.setBuffer( buffer );
+//					object.entity.audio.setRefDistance( 20 );
+//					object.entity.audio.setVolume( 2 );
+//				} })(object) );
 		    }
 		}
 		function onLoaded2( object , team) {
 			var i = 0, original=object;//55
 			for(i=0;i<5;i++) {
 		    	object=cloneFbx(original);
-		    	var bbox = new THREE.Mesh(original.boundingBoxGeometry, MeshBlackMaterial );
-				bbox._model=object, bbox.matrixWorld=object.matrixWorld;
+		    	var bbox = { geometry:original.boundingBoxGeometry, matrixWorld:object.matrixWorld };
+				bbox._model=object;
 				object.bbox=bbox;
 				raycaster_models.push(bbox);
 		    	
 		    	object.mixer = new THREE.AnimationMixer( object );
 	    		mixers.push( object.mixer );
 	    		object.playAction('free');
-	    		object.position.copy(team2Positions[i]);
+	    		var j = i>=5?i%5:i;
+	    		object.position.copy(team2Positions[j]);
 		    	scene.add( object );
 		    	new MonsterEntity().setModel(object).setRadius(2.5);
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model2.topBoard);
 		    	new iPhysics(object.entity);
 		    	addUpdater(object.entity);
 		    	addTeamUnit(object.entity, 2, 2);
+//		    	object.entity.audio=new THREE.PositionalAudio( listener );
+//		    	object.add(object.entity.audio);
+//		    	loadAudio( '../assets/audio/s1.mp3', (function(object){return function ( buffer ) {
+//					object.entity.audio.setBuffer( buffer );
+//					object.entity.audio.setRefDistance( 20 );
+//					object.entity.audio.setVolume( 2 );
+//				} })(object) );
 		    }
 		}
 	}

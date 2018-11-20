@@ -40,8 +40,8 @@
 			var i = 55, original=object;//55
 		    //while(i--) {
 		    	//object=cloneFbx(original);
-		    	var bbox = new THREE.Mesh(original.boundingBoxGeometry, MeshBlackMaterial );
-				bbox._model=object, bbox.matrixWorld=object.matrixWorld;
+			var bbox = { geometry:original.boundingBoxGeometry, matrixWorld:object.matrixWorld };
+				bbox._model=object; object.bbox=bbox;
 				raycaster_models.push(bbox);
 		    	
 		    	//object.mixer = new THREE.AnimationMixer( object );

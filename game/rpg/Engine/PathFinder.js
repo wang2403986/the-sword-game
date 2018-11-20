@@ -83,28 +83,11 @@
 			if (physics.findPathType === 2) {// auto find attack target
 				var arr=physics.source.attackTargets, tmpPos=physics.source.pos;
 				array2.length=0;
-				for(var i=0;i<arr.length;i++){
+				for(var i=0;i<arr.length;i++)
 					if(!arr[i].isDead)array2.push(arr[i]);
-				};
 				arr = array2;
 				for(var i=0;i< arr.length;i++){
 					arr[i]._cmp=arr[i].pos.distanceToSquared(tmpPos);
-				}
-				function selectSort(arr){
-				    var len=arr.length;
-				    var minIndex,temp,		count=Math.min(len-1, 16);
-				    for(i=0;i<count;i++){//for(i=0;i<len-1;i++){
-				        minIndex=i;
-				        for(j=i+1;j<len;j++){
-				            if(arr[j]._cmp<arr[minIndex]._cmp){
-				                minIndex=j;
-				            }
-				        }
-					    temp=arr[i];
-					    arr[i]=arr[minIndex];
-					    arr[minIndex]=temp;
-				    }
-				    return arr;
 				}
 				selectSort(arr);
 				for(var i=0;i< 16&&i<arr.length;i++){
@@ -151,5 +134,22 @@
 			
 		}
 		addUpdater(this);
+
+		function selectSort(arr){
+		    var len=arr.length;
+		    var minIndex,temp,		count=Math.min(len-1, 16);
+		    for(i=0;i<count;i++){//for(i=0;i<len-1;i++){
+		        minIndex=i;
+		        for(j=i+1;j<len;j++){
+		            if(arr[j]._cmp<arr[minIndex]._cmp){
+		                minIndex=j;
+		            }
+		        }
+			    temp=arr[i];
+			    arr[i]=arr[minIndex];
+			    arr[minIndex]=temp;
+		    }
+		    return arr;
+		}
 	}
 })()

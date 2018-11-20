@@ -105,18 +105,20 @@
 		}
 	};
 	iPhysics.prototype.startAttack=function() {
+		console.log('startAttack')
 		this.autoMove = false;//stop move state
 		this.findPathDiscarded = true;//stop findPath
 		if(this.isLockTarget) this.stopPosition.copy(this.source.pos);
 		this.setState(PS_ATTACK);
-		this.attackStartTime = now;
+		this.attackStartTime = now- 300;
 		var targetPhysics=this.attackTarget.physics;
 		if(targetPhysics&& !targetPhysics.attacker) targetPhysics.attacker=this.source;
 	}
 	iPhysics.prototype.doAttack=function() {
 		var targetPhysics=this.attackTarget.physics;
 		if(targetPhysics&& !targetPhysics.attacker) targetPhysics.attacker=this.source;
-		if(now-this.attackStartTime>=1200){
+		if(now-this.attackStartTime>=this.source.attackCooldownTime){
+			//this.source.audio.play();
 			this.attackStartTime=now;
 			this.attackTarget.onHit && this.attackTarget.onHit(this.source);
 		}
@@ -142,7 +144,7 @@
 		}
 		var auto = !this.isLockTarget;
 		var attackTarget=this.attackTarget, source=this.source;
-		var campDistance=attackTarget.pos.distanceToSquared(this.stopPosition);
+		var chaseDistance=source.pos.distanceToSquared(this.stopPosition);
 		var distance=distanceToSquared(source.pos, attackTarget.pos);
 		var chaseRange = attackTarget.range+ source.chaseRange;
 		var autoAttackRange = attackTarget.range+ source.autoAttackRange;
@@ -152,7 +154,7 @@
 			this.findPath(this.destPosition);
 		} else if(distance>attackRange*attackRange){// stop attack or Pursuit
 			this.stopAttack();
-			if((campDistance>chaseRange*chaseRange) &&auto)
+			if((chaseDistance>chaseRange*chaseRange) &&auto)
 				this.findPath(this.destPosition);
 		} else if (attackTarget.isDead) {
 			this.stopAttack();
@@ -177,13 +179,15 @@
 			var autoAttackRange = aTarget.range+ source.autoAttackRange;
 			var attackRange = aTarget.range+ source.attackRange;
 			if(auto&&distance>autoAttackRange*autoAttackRange){// target is outside pursuit range
-				this.stopMoveState();
+				this.stopChase();
 				this.findPath(this.destPosition);
 			}else if(distance<=attackRange*attackRange){// do attack
 				this.startAttack()
 			} else if(auto&&source.pos.distanceToSquared(this.attackStartPos)>source.chaseRange*source.chaseRange){
 				this.stopChase();
-				this.findPath(this.destPosition);
+				if(!this.attackStartPos.equals(this.stopPosition)){
+					this.findPath(this.destPosition);
+				}
 			}
 		} else if( this.attacker){
 		}

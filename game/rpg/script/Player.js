@@ -24,9 +24,8 @@
 		//var action = object.mixer.clipAction( object.animations[ 0 ] );
 		object.playAction('free');
 		
-		var bbox = new THREE.Mesh( object.boundingBoxGeometry, MeshBlackMaterial );
-		bbox._model=object, bbox.matrixWorld=object.matrixWorld;
-		object.bbox=bbox;
+		var bbox = { geometry:object.boundingBoxGeometry, matrixWorld:object.matrixWorld };
+		bbox._model=object, object.bbox=bbox;
 		raycaster_models.push(bbox);
 		//child.material.color.setHex( 0xffcccc );
 		scene.add( object );
@@ -35,12 +34,20 @@
 		camera.setSource&&camera.setSource(player);
 		//var Sprite= textSprite({message:'ÕıÃœ11',HP:100});
 		//player.add(Sprite);
-		new iEntity().setModel(object).setRadius(1.5);
+		new iEntity().setModel(object).setRadius(1.5).rangedAttack=true;
 		object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		new iPhysics(object.entity);
 		addUpdater(object.entity);
 		addTeamUnit(object.entity, 1, 1);
 		// ÃÌº”π÷ŒÔ
 		addMonster();
+		object.entity.attackCooldownTime=1300;
+		object.entity.audio=new THREE.PositionalAudio( listener );
+		loadAudio( '../assets/audio/s2.mp3', function ( buffer ) {
+			object.entity.audio.setBuffer( buffer );
+			object.entity.audio.setVolume( 2 );
+			object.entity.audio.setRefDistance( 20 );
+		} );
+    	object.add(object.entity.audio);
 	}
 })();

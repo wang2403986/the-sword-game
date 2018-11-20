@@ -9,6 +9,8 @@
 	window.iEntity=iEntity;
 	iEntity.array1=[];
 	function iEntity() {
+		this.rangedAttack=false;
+		this.attackCooldownTime=650;
 		this.id = generateID();
 		this.maxHP=100;//满血生命值
 		this.HP=100;//生命值
