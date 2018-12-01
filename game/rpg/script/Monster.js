@@ -29,12 +29,12 @@
 				radius: 1 , scale:.05//
 		};
 		loadModel(model2, onLoaded2);
-		// 己方单位
+		//units position
 		var team1Positions=[{x: 297.5097177611134, y: 0, z: 227.49068714559965}
 		,{x: 297.6893219994267, y: 0, z: 243.6025494163561}
 		,{x: 297.6483929862446, y: 0, z: 259.4010713425036},{x: 313.58411680637954, y: 0, z: 227.55047008382772}
 		,{x: 313.55076793900497, y: 0, z: 243.45584369279445}];
-		// 敌方单位
+		//enemy units position
 		var team2Positions=[{x: 177.73393857389513, y: 0, z: 319.54388206624026},
 		{x: 177.74255178969676, y: 0, z: 335.531304091303}
 		,{x: 177.72216067437978, y: 0, z: 351.52858765281644}
@@ -42,7 +42,7 @@
 		,{x: 193.672910289981, y: 0, z: 335.52189589186986}];
 		function onLoaded( object , team) {
 			var i = 0, original=object;//55
-		    for(i=0;i<5;i++) {
+		    for(i=0;i<15;i++) {
 		    	object=cloneFbx(original);
 		    	var bbox = { geometry:original.boundingBoxGeometry, matrixWorld:object.matrixWorld };
 				bbox._model=object;
@@ -56,6 +56,7 @@
 		    	object.position.copy(team1Positions[j])//rand(20,480),0, rand(20,480)
 		    	scene.add( object );
 		    	new MonsterEntity().setModel(object).setRadius(2);
+		    	object.entity.attackCooldownTime=1000*0.36666667461395264;
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		    	new iPhysics(object.entity);
 		    	addUpdater(object.entity);
@@ -71,7 +72,7 @@
 		}
 		function onLoaded2( object , team) {
 			var i = 0, original=object;//55
-			for(i=0;i<5;i++) {
+			for(i=0;i<15;i++) {
 		    	object=cloneFbx(original);
 		    	var bbox = { geometry:original.boundingBoxGeometry, matrixWorld:object.matrixWorld };
 				bbox._model=object;
@@ -85,6 +86,7 @@
 	    		object.position.copy(team2Positions[j]);
 		    	scene.add( object );
 		    	new MonsterEntity().setModel(object).setRadius(2.5);
+		    	object.entity.attackCooldownTime=1000*0.36666667461395264;
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model2.topBoard);
 		    	new iPhysics(object.entity);
 		    	addUpdater(object.entity);

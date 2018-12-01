@@ -6,7 +6,7 @@ setTimeout(function(){
 	//new Effect(new THREE.Vector3(300,0,300));
 },3000)
 var up=new THREE.Vector3(0,1,0);
-var up2=new THREE.Vector3(0,0,-1);
+var up2=new THREE.Vector3(0,1,0,0,0,-1);
 window.BurstEffect=Effect;
 function Effect(position, EffectTime) {
 	var transform, g = 9.8*10, speed = 200, verticalSpeed, moveDirection, angleSpeed, angle, totalTime,time=0;
@@ -17,7 +17,7 @@ function Effect(position, EffectTime) {
     	if(shockwavePool.length){
     		shockwave = shockwavePool.pop();
     	} else {
-    		shockwave = new ParticleSystem();
+    		shockwave = new Fire();
     		shockwave.opts.windStrength= 0,
     		shockwave.opts.windFrequency= 0,
     		shockwave.opts.opacity=1;
@@ -26,7 +26,7 @@ function Effect(position, EffectTime) {
     		shockwave.opts.sparkEndSize=(7*10*300);
     		shockwave.opts.sparkDistanceScale=1;
     		shockwave.opts.gravity=0;
-    		shockwave.opts.sparkLifecycle=(3);
+    		shockwave.opts.sparkLifecycle=(1.2);//3
     		//shockwave.opts.setHighLife(1f);
     		//shockwave.opts.setInitialVelocity(new Vector3f(0, 0, 0));
     		//shockwave.opts.setVelocityVariation(0f);
@@ -71,7 +71,7 @@ for(var j=1;j<fArray.length;j+=3){
 window.ParticleSystem=ParticleSystem;
 function ParticleSystem() {
 	  var _this = this;
-  _this.numParticles = 10.00;
+  _this.numParticles = 5.00;
   _this.opts = {
     sparkLifecycle: 0.7,
     sparkStartSize: 10*300,
@@ -105,7 +105,7 @@ ParticleSystem.prototype.init= function init(up) {
     // make sure gravity points in world Y
     // http://stackoverflow.com/questions/35641875/three-js-how-to-find-world-orientation-vector-of-objects-local-up-vector
     this.direction = new THREE.Vector3();
-    if(!up) up=this.direction.set(0,0,-1)
+    if(!up) up=this.direction.set(0,0,-1)//.set(0,0,-1)
     var v3=this.direction.copy(up)//.applyQuaternion(this.getWorldQuaternion().inverse());
 
     var systemGeometry = new THREE.BufferGeometry();
@@ -210,19 +210,18 @@ ParticleSystem.prototype.init= function init(up) {
     systemGeometry.computeBoundingSphere();
     this.system = new THREE.Mesh(systemGeometry, systemMaterial);
     
-    //this.add(this.system);
     this.system.material.uniforms.texture.value = this.texture;
   }
-ParticleSystem.prototype.update= function update(delta, elapsed) {
+  ParticleSystem.prototype.update= function update(delta, elapsed) {
     this.system.material.uniforms.elapsedTime.value = elapsed;
   }
-ParticleSystem.prototype.updateOne= function updateOne(opt) {
+  ParticleSystem.prototype.updateOne= function updateOne(opt) {
     this.system.material.uniforms[opt].value = this.opts[opt];
   }
-ParticleSystem.prototype.updateColor=function updateColor(opt) {
+  ParticleSystem.prototype.updateColor=function updateColor(opt) {
     this.system.material.uniforms[opt].value = new THREE.Color(this.opts[opt]);
   }
-ParticleSystem.prototype.randCenter=function randCenter(v) {
+  ParticleSystem.prototype.randCenter=function randCenter(v) {
     return v * (Math.random() - 0.5);
   };
 })()

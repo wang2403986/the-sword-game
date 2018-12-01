@@ -104,10 +104,14 @@
 		}
 	}, false);
 	document.addEventListener('mouseup', mouseupMsg, false);
+	window.castSkill=castSkill;
+	function castSkill(){
+		skillTargetMode=1;
+		document.body.style.cursor='url("../assets/pic/cursor.ico"),auto';//crosshair
+	}
 	document.addEventListener('keydown', function(event){
 		if(event.keyCode == 49) {
-			skillTargetMode=1;
-			document.body.style.cursor='crosshair';
+			castSkill();
 		}else if(event.keyCode == 17){
 			controls.enableRotate=true
 		}
@@ -192,7 +196,7 @@
 			}
 	         return;
 	    }else if(event.button == 0){
-	        console.log('left');
+	        'left';
 	    }
 		if(camera.isDraged&&camera.isDraged())
 			return 1;

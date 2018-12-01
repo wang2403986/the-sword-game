@@ -4,8 +4,25 @@ var WM_MOUSEWHEEL = 0, WM_LBUTTONDOWN = 1, WM_RBUTTONDOWN = 2, WM_LBUTTONUP = 3,
 var CM_LDOWN = WM_LBUTTONDOWN, CM_LUP = WM_LBUTTONUP ,CM_RUP = WM_RBUTTONUP,
 	CM_RDOWN = WM_RBUTTONDOWN, CM_LEAVE = WM_MOUSELEAVE;
 Define = { PS_FREE:'free', PS_MOVE:'walk', PS_ATTACK:'attack', PS_DIE:'die', PS_SKILL:'skill'};
-var MeshBlackMaterial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
-
+var audioLoader = new THREE.AudioLoader();
+var listener = new THREE.AudioListener();
+var audiosData={};
+function loadAudio(url, callback){
+	if(!audiosData[url]){
+		audiosData[url]={};
+		var data = audiosData[url];
+		data.listeners=[callback];
+		audioLoader.load( url, function ( buffer ) {
+			data.buffer=buffer;
+			for(var i=0;i<data.listeners.length;i++){
+				data.listeners[i](buffer);
+			}
+		} );
+	} else {
+		if(audiosData[url].buffer) callback(audiosData[url].buffer);
+		else audiosData[url].listeners.push(callback);
+	}
+}
 function distanceToSquared(pos, pos2){
 	var dx=(pos.x>>0)-(pos2.x>>0),dy=(pos.z>>0)-(pos2.z>>0);
 	return dx*dx+dy*dy;
@@ -252,7 +269,8 @@ function cloneFbx(fbx) {
 				ray.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
 				if ( ray.intersectsBox( geometry.boundingBox ) === false ) continue;
 			}
-			intersects.push({ object:object });
+			object.object=object;
+			intersects.push(object);
 		}
 		return intersects;
 	}

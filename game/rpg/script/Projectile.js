@@ -21,8 +21,12 @@
 ////		new Projectile(new THREE.Vector3(x,0,500), new THREE.Vector3(x,0,0));
 ////	else new Projectile(new THREE.Vector3(x,0,0), new THREE.Vector3(x,0,500));
 //},1000)
-function Projectile(position, target, m_speed, gravity) {
+	window.Projectile=Projectile;
+function Projectile(source, attackTarget, m_speed, gravity) {
+	var position=source,target=attackTarget;
+	if(position.x===undefined)position=source.pos,target=attackTarget.pos;
 	var transform, g = 9.8*10, speed = 200, verticalSpeed, moveDirection, angleSpeed, angle, totalTime,time=0;
+	speed=40;
     this.start =function() {
     	if(m_speed) speed=m_speed;  if(gravity) g=gravity;
     	//transform = new THREE.Sprite( Bullet.material ); transform.scale.set(100,100,1);
@@ -59,7 +63,10 @@ function Projectile(position, target, m_speed, gravity) {
     this.update=function (deltaTime)
     {
     	transform.update(deltaTime, (time+deltaTime))
-    	if (totalTime <= time-1) {
+    	if (totalTime <= time) {
+    		if(attackTarget.onHit){
+    			attackTarget.onHit(source);
+    		}
     		removeUpdater(this); scene.remove( transform.system );
     		objectsPool.push(transform);
     		return;
@@ -67,7 +74,8 @@ function Projectile(position, target, m_speed, gravity) {
         time += deltaTime;
         var test = verticalSpeed - g * time;
         transform.position.add(m_vLook.copy(moveDirection).multiplyScalar(speed * deltaTime));
-       transform.position.y += test * deltaTime;
+        transform.position.y=5;
+       //transform.position.y += test * deltaTime;
         var testAngle = -angle + angleSpeed * time;
         //transform.rotation.x = testAngle*Math.PI/180 ;
     }
@@ -78,12 +86,12 @@ window.Fire=Fire;
     _this.numParticles = 10.00;
     _this.opts = {
       sparkLifecycle: 0.7,
-      sparkStartSize: 10*300,
-      sparkEndSize: 20*300,
+      sparkStartSize: 10*100,
+      sparkEndSize: 20*100,
       sparkDistanceScale: 1.4,
 
-      flameMinHeight: 0.02*30,
-      flameMaxHeight: 0.2*30,
+      flameMinHeight: 0.02*20,
+      flameMaxHeight: 0.2*20,
       flamePeriod: 0.5,
       windStrength: 0.14,
       windFrequency: 0.5,
@@ -135,7 +143,7 @@ window.Fire=Fire;
 
         transparent: true,
         depthWrite: false,
-        depthTest: true,
+        depthTest: false,//true,
         // NOTE: don't use additive blending for light backgrounds
         // http://answers.unity3d.com/questions/573717/particle-effects-against-light-backgrounds.html
         blending: THREE.AdditiveBlending,

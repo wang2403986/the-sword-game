@@ -65,14 +65,18 @@
 			var unit0 =tasks.shift();
 			var scale = scaleFactor;
 			var i=0, unitsNumber=0;
+			var physics = unit0.physics;
+			var avoidance=physics.attackTarget||physics.skillTarget||physics.findPathType === 2;
 			for (var j=0; j<g_gameUnits.length;j++) {
 				var unit = g_gameUnits[j];
-				if (unit === unit0 ||(unit.physics&&unit.physics.autoMove&&!unit.physics.isWaiting)) continue;
+				var obstacle=unit.physics;
+				if (unit === unit0 ||(!avoidance&&obstacle&&obstacle.autoMove&&!obstacle.isWaiting)) continue;
 				objects[i]=unit.pos.x, objects[i+1]=unit.pos.z, objects[i+2]= unit.radius;
 				i+=3; unitsNumber++;
 			}
-			var physics = unit0.physics;
 			var target = physics.findPathPosition;
+			if(physics.findPathType === 1) target=physics.destPosition;
+			
 			m_startX=unit0.pos.x*scale, m_startY=unit0.pos.z*scale;
 			var  endX = target.x >> 0, endY = target.z >> 0;
 			var startX = m_startX>> 0, startY = m_startY>> 0;
@@ -98,6 +102,7 @@
 				if (pathSize >= 0) {
 			    	if(physics.findPathDiscarded) return;
 			    	physics.attackTarget = arr[f32Array[0]];
+			    	physics.findPathPosition.copy(arr[f32Array[0]].pos);//TODO
 			    	physics.isLockTarget=false;
 			    	physics.attackStartPos.copy(physics.source.pos);
 				    for(var i=0;i<pathSize;i++) {

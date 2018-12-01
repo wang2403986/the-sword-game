@@ -10,7 +10,7 @@
 	iEntity.array1=[];
 	function iEntity() {
 		this.rangedAttack=false;
-		this.attackCooldownTime=650;
+		this.attackCooldownTime=650,this.attackCastTime=300,this.attackDamage=1;
 		this.id = generateID();
 		this.maxHP=100;//满血生命值
 		this.HP=100;//生命值
@@ -112,8 +112,8 @@
 		this.model=m; this.pos= m.position;
 		return m.entity = this;
 	}
-	iEntity.prototype.onHit=function() {
-		this.HP -= 10;
+	iEntity.prototype.onHit=function(source) {
+		this.HP -= source.attackDamage;
 		if(this.topboard){
 			this.topboard.update(this.HP/this.maxHP);
 		}

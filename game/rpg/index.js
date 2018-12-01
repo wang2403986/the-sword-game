@@ -45,7 +45,7 @@ function init() {
 	grid.material.opacity = 0.5;
 	grid.material.transparent = true;
 	terrin = mesh;
-	scene.add( grid );
+	//scene.add( grid );
 
 	renderer = new THREE.WebGLRenderer( { antialias: false } );
 	renderer.setPixelRatio( window.devicePixelRatio );
@@ -67,7 +67,6 @@ function animate() {
 	requestAnimationFrame( animate );
 	var now = Date.now();
 	var fElapse  = (now - window.now)/1000.0;
-    if (fElapse < 0.0001) return;
     window.now = now;
     keyboard.update();
 	for ( var i = 0; i < mixers.length; i ++ )

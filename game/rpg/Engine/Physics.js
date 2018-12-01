@@ -66,7 +66,7 @@
 	};
 	iPhysics.prototype.setSkillTarget=function(skillTarget){
 		var distance=skillTarget.pos.distanceToSquared(this.source.pos);
-		var attackRange = skillTarget.range+ this.source.attackRange;
+		var attackRange = skillTarget.range+ 10;
 		if(distance<=attackRange*attackRange){// do skill
 			this.skillTarget=skillTarget;
 			this.startSkill();
@@ -108,20 +108,12 @@
 		console.log('startAttack')
 		this.autoMove = false;//stop move state
 		this.findPathDiscarded = true;//stop findPath
-		if(this.isLockTarget) this.stopPosition.copy(this.source.pos);
+		if(this.isLockTarget) this.destPosition.copy(this.stopPosition.copy(this.source.pos));
 		this.setState(PS_ATTACK);
-		this.attackStartTime = now- 300;
+		this.attackStartTime = now;
+		this.isCasted=false;
 		var targetPhysics=this.attackTarget.physics;
 		if(targetPhysics&& !targetPhysics.attacker) targetPhysics.attacker=this.source;
-	}
-	iPhysics.prototype.doAttack=function() {
-		var targetPhysics=this.attackTarget.physics;
-		if(targetPhysics&& !targetPhysics.attacker) targetPhysics.attacker=this.source;
-		if(now-this.attackStartTime>=this.source.attackCooldownTime){
-			//this.source.audio.play();
-			this.attackStartTime=now;
-			this.attackTarget.onHit && this.attackTarget.onHit(this.source);
-		}
 	}
 	iPhysics.prototype.stopAttack=function() {
 		if(!this.attackTarget) return;
@@ -140,7 +132,7 @@
 	iPhysics.prototype.updateAttackState = function() {
 		//定时寻路
 		if (this.isAutoFindPath) {
-			this.findPath(this.destPosition, autoFindPathType);
+			this.findPath(null, autoFindPathType);
 		}
 		var auto = !this.isLockTarget;
 		var attackTarget=this.attackTarget, source=this.source;
@@ -149,28 +141,53 @@
 		var chaseRange = attackTarget.range+ source.chaseRange;
 		var autoAttackRange = attackTarget.range+ source.autoAttackRange;
 		var attackRange = attackTarget.range+ source.attackRange + 3;
-		if(distance>autoAttackRange*autoAttackRange){
-			this.stopAttack();//stop attack and move back
-			this.findPath(this.destPosition);
-		} else if(distance>attackRange*attackRange){// stop attack or Pursuit
-			this.stopAttack();
-			if((chaseDistance>chaseRange*chaseRange) &&auto)
+		
+		var targetPhysics=attackTarget.physics;
+		if(targetPhysics&& !targetPhysics.attacker) targetPhysics.attacker=source;
+		var faceDir = v3_4.subVectors(attackTarget.pos , source.pos);
+	    faceDir.y = 0.0;
+	    this.faceToDir(faceDir);
+		
+		if(now-this.attackStartTime>=source.attackCooldownTime){
+			//this.source.audio.play();
+			this.isCasted=false;
+			this.attackStartTime=now;
+			this.attackTarget.onHit && this.attackTarget.onHit(source);
+			
+			if(distance>autoAttackRange*autoAttackRange){
+				this.stopAttack();//stop attack and move back
 				this.findPath(this.destPosition);
-		} else if (attackTarget.isDead) {
-			this.stopAttack();
-		} else {
-			this.doAttack();
-			var faceDir = v3_4.subVectors(attackTarget.pos , source.pos);
-		    faceDir.y = 0.0;
-		    this.faceToDir(faceDir);
+			} else if(distance>attackRange*attackRange){// stop attack or Pursuit
+				this.stopAttack();
+				if((chaseDistance>chaseRange*chaseRange) &&auto)
+					this.findPath(this.destPosition);
+			} else if (attackTarget.isDead) {
+				this.stopAttack();
+			}
+		}else {
+			if(source.rangedAttack&&!this.isCasted&&now-this.attackStartTime>=source.attackCooldownTime/2){
+				this.isCasted=true;
+				new Projectile(source, attackTarget);
+			}
 		}
 	};
+	
 	iPhysics.prototype.updateMoveState = function() {
-		var skillTarget=this.skillTarget,source=this.source, aTarget=this.attackTarget, auto = !this.isLockTarget;
+		var source=this.source;
+//		if (!this.moveToState&&source.pos.distanceToSquared(this.moveToPosition)<=4*4){
+//			this.moveToState=1;
+//			if(this.pathCurrent<this.path.length){
+//				v3_4.set(this.path[this.pathCurrent],0,this.path[this.pathCurrent+1]);
+//				var faceDir = v3_4.sub(this.moveToPosition);
+//			    faceDir.y = 0.0;
+//			    this.faceToDir(faceDir);
+//			}
+//		}
+		var skillTarget=this.skillTarget, aTarget=this.attackTarget, auto = !this.isLockTarget;
 		//已下达施放技能命令
 		if (skillTarget) {
 			var distance=skillTarget.pos.distanceToSquared(source.pos);
-			var attackRange = skillTarget.range+ source.attackRange;
+			var attackRange = skillTarget.range+ 10;
 			if(distance<=attackRange*attackRange){// do skill
 				this.startSkill()
 			}
@@ -183,13 +200,17 @@
 				this.findPath(this.destPosition);
 			}else if(distance<=attackRange*attackRange){// do attack
 				this.startAttack()
-			} else if(auto&&source.pos.distanceToSquared(this.attackStartPos)>source.chaseRange*source.chaseRange){
+			}else if(auto&&source.pos.distanceToSquared(this.attackStartPos)>source.chaseRange*source.chaseRange){
 				this.stopChase();
 				if(!this.attackStartPos.equals(this.stopPosition)){
 					this.findPath(this.destPosition);
 				}
+			}else if(aTarget.isDead){
+				this.stopChase();
+			}else if(!this.isFindPath){
+				var findPos=this.findPathPosition, pos = aTarget.pos; findPos.x=pos.x, findPos.z=pos.z;
 			}
-		} else if( this.attacker){
+		} else if(this.attacker){
 		}
 	};
 	iPhysics.prototype.updateFreeState = function() {
@@ -210,7 +231,7 @@
 		} else if(!this.isFindPath && this.source.attackTargets.length) {
 			this.findPath(null, autoAttackFindPathType);
 		} else if (!this.isFindPath && this.isAutoFindPath) {//定时移动
-			this.findPath(this.destPosition, autoFindPathType);
+			this.findPath(null, autoFindPathType);
 		}
 	};
 	iPhysics.prototype.findPath=function(/*D3DXVECTOR3*/ dest, type) {
@@ -275,13 +296,50 @@
 
 	var v3_4=new THREE.Vector3();
 	iPhysics.prototype.moveTo=function(dest, findPathType) {
+		var path =this.path, endIndex = path.length-1;
 		if(this.state===PS_ATTACK && findPathType===autoFindPathType) {
 			if(this.isLockTarget&&this.attackTarget) return;
-			var path =this.path, endIndex = path.length-1;
-			if(Math.abs(path[endIndex-1]-this.stopPosition.x)<=10 &&
-					Math.abs(path[endIndex]-this.stopPosition.z)<=10)
+			if(Math.abs(path[endIndex-1]-this.stopPosition.x)<=32 &&
+					Math.abs(path[endIndex]-this.stopPosition.z)<=32)
 				return;
+			console.log('autoFindPathType!!');
 			this.stopAttack();
+		}
+		if(findPathType===autoFindPathType)
+			this.findPathPosition.copy(this.destPosition);
+		this.moveToState=0;
+		var i=this.pathCurrent-2, j=this.pathCurrent, moveX, moveY;
+		if(j+3<= endIndex&&1){
+			if(path[i]>>0===path[i+2]>>0 &&path[j+1]===path[j+3]){
+				if(path[i+3]-path[i+1]>=1.5){
+				    moveY = (path[j+1]>>0) -1+0.75;
+				    moveX = path[j];
+		            path[j+1] = path[j+3];
+		            path[j] =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
+		            if(path[j]!==path[j+2]) this.pathCurrent -=2;
+				}else if(path[i+1]-path[i+3]>=1.5){
+					moveY = (path[j+1]>>0) +1+0.25;
+					moveX = path[j];
+					path[j+1] = path[j+3];
+					path[j] =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
+					if(path[j]!==path[j+2]) this.pathCurrent -=2;
+	            }
+			}else if(path[i+1]>>0===path[i+3]>>0 &&path[j]===path[j+2]){
+				if(path[i+2]-path[i]>=1.5){
+					moveX = (path[j]>>0) -1+0.75;
+					moveY = path[j+1];
+					path[j] = path[j+2];
+					path[j+1] =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
+					if(path[j+1]!==path[j+3]) this.pathCurrent -=2;
+				}else if(path[i]-path[i+2]>=1.5){
+		            moveX = (path[j]>>0) +1+0.25;
+		            moveY = path[j+1];
+		            path[j] = path[j+2];
+		            path[j+1] =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
+		            if(path[j+1]!==path[j+3]) this.pathCurrent -=2;
+		        }
+			}
+			if(moveX!==undefined)dest.set(moveX,0,moveY);
 		}
 
 		var m_pSource = this.source;
@@ -289,7 +347,7 @@
 	    this.oldPosition.copy(m_pSource.pos);
 	    this.moveToPosition.copy(dest);
 	    var distance = this.moveToPosition.distanceTo(this.oldPosition);
-	    if(distance<0.1) return;
+	    if(distance<=0.01) return;
 	    var faceDir = v3_4.subVectors(dest , m_pSource.pos);
 	    faceDir.y = 0.0;
 	    this.faceToDir(faceDir);
@@ -355,8 +413,8 @@
         } else {
         	var collision=this.getCollisionObject(true);
         	if (collision)  {
-        		if(collision.physics.autoMove)
-        			if(!collision.physics.isWaiting) this.setWaitTime();
+        		var physics=collision.physics;
+        		if(physics&&physics.autoMove&&!physics.isWaiting) this.setWaitTime();
         		this.needsFindPath=true;
         		this.path.length=0;
         		this.pathCurrent=0;
@@ -427,15 +485,15 @@
 	}
 	iPhysics.prototype.onStateChange=function(newstate, oldSate) {
 		if (!this.source) return;
-		if (this.state == Define.PS_FREE)
-			this.source.playAction(Define.PS_FREE)
-		else if( this.state == Define.PS_MOVE)
-			this.source.playAction(Define.PS_MOVE)
-		else if(this.state == Define.PS_ATTACK )
-			this.source.playAction(Define.PS_ATTACK)
-		else if( this.state == Define.PS_DEAD )
+		if (this.state === PS_FREE)
+			this.source.playAction(PS_FREE)
+		else if( this.state === PS_MOVE)
+			this.source.playAction(PS_MOVE)
+		else if(this.state === PS_ATTACK )
+			this.source.playAction(PS_ATTACK)
+		else if( this.state === Define.PS_DEAD )
 			this.source.playAction(Define.PS_DEAD);
-		else if( this.state == Define.PS_SKILL )
-			this.source.playAction(Define.PS_SKILL);
+		else if( this.state === PS_SKILL )
+			this.source.playAction(PS_SKILL);
 	}
 })();
