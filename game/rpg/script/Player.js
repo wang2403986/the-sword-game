@@ -43,7 +43,7 @@
 		addMonster();
 		object.entity.attackCooldownTime=1000*1.7666664123535156;//0.36666667461395264
 		object.entity.rangedAttack=true;
-		object.entity.attackRange=25;
+		object.entity.attackRange=15;
 		object.entity.maxHP= object.entity.HP=1000;
 		object.entity.audio=new THREE.PositionalAudio( listener );
 		loadAudio( '../assets/audio/s2.mp3', function ( buffer ) {

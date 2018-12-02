@@ -1,4 +1,33 @@
 (function (){
+	
+	var loader2 = new THREE.JSONLoader();
+	window.arrowShow=function(){};
+	loader2.load("../assets/models/RallyArrow2.json", function(geometry,matls){
+		debugger;
+		matls[0].skinning=true;
+		matls[0].transparent=true;//matls[0].color.setHex( 0x00ff00 )
+		var mesh = new THREE.SkinnedMesh(geometry, matls[0] );
+		mesh.scale.set(.06,.06,.06);
+		mesh.rotateX(-Math.PI/2);
+		scene.add( mesh );
+        //geometry.animations[0].resetDuration()
+        var mixer = new THREE.AnimationMixer( mesh );
+        //var clip = THREE.AnimationClip.findByName( geometry.animations, 'free' );
+        var clip=geometry.animations[0];
+        var action=mixer.clipAction(clip );
+        action.clampWhenFinished = true;
+		action.loop = THREE.LoopOnce;
+		action.reset().play();
+		window.cursorEntity=mesh;
+		window.arrowShow=function(){
+			action.reset();
+			//action.clampWhenFinished = true;
+			action.play();
+		};
+        mixers.push(mixer);
+    });
+	
+	
 	var geometry = new THREE.PlaneBufferGeometry( 10, 10 );
 	var vertices = geometry.attributes.position.array;
     for ( var j = 0, l = vertices.length; j < l; j += 3 ) {
@@ -16,9 +45,9 @@
 			if(this.rotation.y>Math.PI*2)this.rotation.y=0;
 		}
 	};
-	addUpdater(cone);
-	window.cursorEntity = cone;
-	scene.add( cone );
+	//addUpdater(cone);
+	//window.cursorEntity = window.Arrow;
+	//scene.add( cone );
 	var points = [], length = 5;
 	for (var i = 0; i < length*3; i++) {
 	 points.push(100)
@@ -139,7 +168,7 @@
 			var isAttack=true;
 			if(intersects.length > 0 ) {
 				var target = intersects[0].object._model.entity, pos = target.pos;
-				var entity = window.cursorEntity;
+				var entity = window.cursorEntity;arrowShow()
 				entity.position.set(pos.x,pos.y,pos.z);
 				entity.visible=true; entity.lifeTime=now + 800;
 				for (var i=0;i<selections.length;i++) {
@@ -158,7 +187,7 @@
 			if (intersects.length)  {
 				var pos =intersects[0].point;
 //					player.physics.breakAutoMove();
-				var entity = window.cursorEntity;
+				var entity = window.cursorEntity;arrowShow()
 				entity.position.set(pos.x,pos.y,pos.z);
 				entity.visible=true; entity.lifeTime=now + 800;
 				var maxRadius=0;
