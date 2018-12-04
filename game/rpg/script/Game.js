@@ -5,14 +5,14 @@
 	loader2.load("../assets/models/RallyArrow2.json", function(geometry,matls){
 		debugger;
 		matls[0].skinning=true;
-		matls[0].transparent=true;//matls[0].color.setHex( 0x00ff00 )
+		matls[0].transparent=true;matls[0].color.setRGB(34/256,177/256,76/256);
 		var mesh = new THREE.SkinnedMesh(geometry, matls[0] );
+
 		mesh.scale.set(.06,.06,.06);
 		mesh.rotateX(-Math.PI/2);
 		scene.add( mesh );
         //geometry.animations[0].resetDuration()
         var mixer = new THREE.AnimationMixer( mesh );
-        //var clip = THREE.AnimationClip.findByName( geometry.animations, 'free' );
         var clip=geometry.animations[0];
         var action=mixer.clipAction(clip );
         action.clampWhenFinished = true;
@@ -21,7 +21,6 @@
 		window.cursorEntity=mesh;
 		window.arrowShow=function(){
 			action.reset();
-			//action.clampWhenFinished = true;
 			action.play();
 		};
         mixers.push(mixer);
