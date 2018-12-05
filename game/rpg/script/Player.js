@@ -52,5 +52,25 @@
 			object.entity.audio.setRefDistance( 20 );
 		} );
     	object.add(object.entity.audio);
+    	
+    	var geometry = new THREE.PlaneBufferGeometry( 180, 180 );
+    	var vertices = geometry.attributes.position.array;
+        for ( var j = 0, l = vertices.length; j < l; j += 3 ) {
+        	vertices[ j + 2 ]=-vertices[ j + 1 ];
+        	vertices[ j + 1 ]=2;
+    	}
+    	var texture = THREE.ImageUtils.loadTexture('../assets/materials/Rune1d.png');
+    	var material = new THREE.MeshBasicMaterial( {color: 0xff00ff,depthTest: true,depthWrite:true, alphaMap: texture,
+    		transparent: true,   blending: THREE.NormalBlending } );
+    	var cone = new THREE.Mesh( geometry, material );
+    	cone.update = function(deltaTime){
+    		if(this.visible){
+    			if(this.lifeTime<now) this.visible=false;
+    			this.rotation.y+=.05;
+    			if(this.rotation.y>Math.PI*2)this.rotation.y=0;
+    		}
+    	};
+    	//addUpdater(cone);
+    	object.add(cone)
 	}
 })();
