@@ -385,6 +385,7 @@
 	    var k = (m_pSource.speed*this.stepSpeed*moveToElapse);
 		var x = this.oldPosition.x + this.xIncrement*k;
 		var y = this.oldPosition.z + this.yIncrement*k;
+		if(x<0||y<0) return;
 		m_nextPos.set(x,0,y);
 
     	if (this.stepByX) {

@@ -3,7 +3,7 @@ var raycaster = new THREE.Raycaster();
 var raycaster_models=[];
 var mouse = new THREE.Vector2(), INTERSECTED;
 var camera, scene, renderer, light;
-var clock = new THREE.Clock(), keyboard = new KeyboardState();
+var keyboard = new KeyboardState();
 var mixers = [], worldSize = {x:512,y:512};
 
 init();

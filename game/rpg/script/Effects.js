@@ -2,18 +2,14 @@
 	var flamePool =[],shockwavePool =[];
 	var shockwaveTexture=THREE.ImageUtils.loadTexture('../assets/materials/shockwave.png');
 	var flameTexture=THREE.ImageUtils.loadTexture('../assets/materials/flame.png');
-setTimeout(function(){
-	//new Effect(new THREE.Vector3(300,0,300));
-},3000)
 var up=new THREE.Vector3(0,1,0);
 var up2=new THREE.Vector3(0,1,0,0,0,-1);
 window.BurstEffect=Effect;
 function Effect(position, EffectTime) {
-	var transform, g = 9.8*10, speed = 200, verticalSpeed, moveDirection, angleSpeed, angle, totalTime,time=0;
+	var g = 9.8*10, speed = 200, verticalSpeed, moveDirection, angleSpeed, angle, totalTime,time=0;
 	totalTime=2;
 	var shockwave, flame;
     this.start =function() {
-    	//transform = new THREE.Sprite( Bullet.material ); transform.scale.set(100,100,1);
     	if(shockwavePool.length){
     		shockwave = shockwavePool.pop();
     	} else {

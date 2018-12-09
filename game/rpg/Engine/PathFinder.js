@@ -1,17 +1,24 @@
 (function () {
 	var memory,i32, objects,f32Array, app, MAP_SIZE;
-	fetch('main.wasm').then(function (response){
-	  return response.arrayBuffer() }
-	).then(function (bytes){ return WebAssembly.instantiate(bytes) }).then(function (results) {
-		app = results.instance.exports;
+//	fetch('main.wasm').then(function (response){
+//	  return response.arrayBuffer() }
+//	).then(function (bytes){ return WebAssembly.instantiate(bytes) }).then(function (results) {
+//		app = results.instance.exports;
+//		memory = app.memory;
+//		i32 = new Uint16Array(memory.buffer, app.getPath());
+//		objects = new Float32Array(memory.buffer, app.getObjects());
+//		f32Array = new Float32Array(memory.buffer, app.getArray());
+//		console.log(MAP_SIZE =app.main());
+//	}).catch(console.error);
+	window.iPathFinder = new PathFinder();
+	iPathFinder.start = function(instance){
+		app = instance.exports;
 		memory = app.memory;
 		i32 = new Uint16Array(memory.buffer, app.getPath());
 		objects = new Float32Array(memory.buffer, app.getObjects());
 		f32Array = new Float32Array(memory.buffer, app.getArray());
 		console.log(MAP_SIZE =app.main());
-	}).catch(console.error);
-
-	window.iPathFinder = new PathFinder();
+	};
 	var scaleFactor = 1, invScaleFactor = 1;
 	function PathFinder(options) {
 		var tasks = [];

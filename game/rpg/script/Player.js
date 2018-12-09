@@ -32,8 +32,6 @@
 		player = object;
 		
 		camera.setSource&&camera.setSource(player);
-		//var Sprite= textSprite({message:'ÍõÌÏ11',HP:100});
-		//player.add(Sprite);
 		new iEntity().setModel(object).setRadius(1.5).rangedAttack=true;
 		object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		new iPhysics(object.entity);
@@ -45,7 +43,7 @@
 		object.entity.rangedAttack=true;
 		object.entity.attackRange=15;
 		object.entity.maxHP= object.entity.HP=1000;
-		object.entity.audio=new THREE.PositionalAudio( listener );
+		object.entity.audio=new THREE.PositionalAudio( audioListener );
 		loadAudio( '../assets/audio/s2.mp3', function ( buffer ) {
 			object.entity.audio.setBuffer( buffer );
 			object.entity.audio.setVolume( 2 );
