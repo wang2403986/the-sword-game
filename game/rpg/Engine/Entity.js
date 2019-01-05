@@ -28,7 +28,7 @@
 		this._autoAttackDelay = g_autoAttackDelay; g_autoAttackDelay += g_autoAttackDelayDelta;
 		this._lastAutoAttackTime = Date.now();
 
-		this.speed =25 //25;
+		this.speed =25/1.1 //25;
 		this.rotationSpeed = 10;
 		this.nearbyUnits = [];
 		this.attackTargets=this.nearbyUnits;

@@ -13,8 +13,7 @@
 		}
 		this.findPathPosition = new THREE.Vector3(Infinity,0,0);
 		this.nextPos=new THREE.Vector3(), this.rotTarget = new THREE.Quaternion();
-		this.moveDirection = new THREE.Vector3(0, 0, 0);
-		this.moveToPosition = new THREE.Vector3(0, 0, 0);
+		this.moveToPosition = new THREE.Vector3(Infinity, 0, 0);
 		this.oldPosition = new THREE.Vector3(0, 0, 0);
 		this.destPosition = new THREE.Vector3(Infinity, 0, 0);
 		this.stopPosition = new THREE.Vector3(Infinity, 0, 0);
@@ -50,7 +49,13 @@
 	    else if(this.state===PS_SKILL)
 	    	this.updateSkillState();
 	}
+	iPhysics.prototype.attackTo=function(target){
+		this.autoFindPathMax = now + 10*60*1000;
+		this.findPath(target, 0);
+		this.attackToMode = true;
+	};
 	iPhysics.prototype.setAttackTarget=function(target){// TODO
+		this.attackToMode = 0;
 		var distance=distanceToSquared(this.source.pos, target.pos);
 		var attackRange = target.range+ this.source.attackRange;
 		if(distance<=attackRange*attackRange) {// do startAttack
@@ -65,6 +70,7 @@
 		}
 	};
 	iPhysics.prototype.setSkillTarget=function(skillTarget){
+		this.attackToMode = 0;
 		var distance=skillTarget.pos.distanceToSquared(this.source.pos);
 		var attackRange = skillTarget.range+ 10;
 		if(distance<=attackRange*attackRange){// do skill
@@ -174,15 +180,6 @@
 	
 	iPhysics.prototype.updateMoveState = function() {
 		var source=this.source;
-//		if (!this.moveToState&&source.pos.distanceToSquared(this.moveToPosition)<=4*4){
-//			this.moveToState=1;
-//			if(this.pathCurrent<this.path.length){
-//				v3_4.set(this.path[this.pathCurrent],0,this.path[this.pathCurrent+1]);
-//				var faceDir = v3_4.sub(this.moveToPosition);
-//			    faceDir.y = 0.0;
-//			    this.faceToDir(faceDir);
-//			}
-//		}
 		var skillTarget=this.skillTarget, aTarget=this.attackTarget, auto = !this.isLockTarget;
 		//已下达施放技能命令
 		if (skillTarget) {
@@ -210,7 +207,9 @@
 			}else if(!this.isFindPath){
 				var findPos=this.findPathPosition, pos = aTarget.pos; findPos.x=pos.x, findPos.z=pos.z;
 			}
-		} else if(this.attacker){
+		} else if(this.attackToMode){
+			if(!(this.isFindPath&&this.findPathType===autoAttackFindPathType)&&source.attackTargets.length)
+				this.findPath(null, autoAttackFindPathType);
 		}
 	};
 	iPhysics.prototype.updateFreeState = function() {
@@ -295,7 +294,7 @@
 	}
 
 	var v3_4=new THREE.Vector3();
-	iPhysics.prototype.moveTo=function(dest, findPathType) {
+	iPhysics.prototype.moveForward=function( findPathType, firstStep) {
 		var path =this.path, endIndex = path.length-1;
 		if(this.state===PS_ATTACK && findPathType===autoFindPathType) {
 			if(this.isLockTarget&&this.attackTarget) return;
@@ -309,49 +308,52 @@
 			this.findPathPosition.copy(this.destPosition);
 		this.moveToState=0;
 		var i=this.pathCurrent-2, j=this.pathCurrent, moveX, moveY;
-		if(j+3<= endIndex&&1){
+//		if(path[i]===path[j] &&path[i+1]===path[j+1] ){
+//			if(j+2> endIndex){
+//				console.error(path);
+//			}
+//			this.pathCurrent+=2;
+//			i=this.pathCurrent-2, j=this.pathCurrent;
+//		}
+		this.moveToElapse=0;
+		this.moveToPosition.set(path[this.pathCurrent], 0, path[this.pathCurrent+1]);
+		if(j+3<= endIndex&& 1){
 			if(path[i]>>0===path[i+2]>>0 &&path[j+1]===path[j+3]){
-				if(path[i+3]-path[i+1]>=1.5){
-				    moveY = (path[j+1]>>0) -1+0.75;
+				if(path[i+3]-path[i+1]>=1){
+					moveY = (path[j+1]>>0) -0.4375;
 				    moveX = path[j];
-		            path[j+1] = path[j+3];
 		            path[j] =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-		            if(path[j]!==path[j+2]) this.pathCurrent -=2;
-				}else if(path[i+1]-path[i+3]>=1.5){
-					moveY = (path[j+1]>>0) +1+0.25;
+		            if(path[j]!==path[j+2])this.pathCurrent -=2;
+				}else if(path[i+1]-path[i+3]>=1){
+					moveY = (path[j+1]>>0)+1 +0.4375;
 					moveX = path[j];
-					path[j+1] = path[j+3];
 					path[j] =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-					if(path[j]!==path[j+2]) this.pathCurrent -=2;
+					if(path[j]!==path[j+2])this.pathCurrent -=2;
 	            }
 			}else if(path[i+1]>>0===path[i+3]>>0 &&path[j]===path[j+2]){
-				if(path[i+2]-path[i]>=1.5){
-					moveX = (path[j]>>0) -1+0.75;
+				if(path[i+2]-path[i]>=1){
+					moveX = (path[j]>>0) -0.4375;
 					moveY = path[j+1];
-					path[j] = path[j+2];
 					path[j+1] =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
-					if(path[j+1]!==path[j+3]) this.pathCurrent -=2;
-				}else if(path[i]-path[i+2]>=1.5){
-		            moveX = (path[j]>>0) +1+0.25;
+					if(path[j+1]!==path[j+3])this.pathCurrent -=2;
+				}else if(path[i]-path[i+2]>=1){
+					moveX = (path[j]>>0)+1 +0.4375;
 		            moveY = path[j+1];
-		            path[j] = path[j+2];
 		            path[j+1] =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
-		            if(path[j+1]!==path[j+3]) this.pathCurrent -=2;
+		            if(path[j+1]!==path[j+3])this.pathCurrent -=2;
 		        }
 			}
-			if(moveX!==undefined)dest.set(moveX,0,moveY);
+			if(moveX!==undefined) this.moveToPosition.set(moveX,0,moveY);
 		}
-
-		var m_pSource = this.source;
-		this.moveToElapse=0;
-	    this.oldPosition.copy(m_pSource.pos);
-	    this.moveToPosition.copy(dest);
+	    this.oldPosition.copy(this.source.pos);
+	    iDebugData.push(this.moveToPosition.clone());// TODO
 	    var distance = this.moveToPosition.distanceTo(this.oldPosition);
-	    if(distance<=0.01) return;
-	    var faceDir = v3_4.subVectors(dest , m_pSource.pos);
+	    if(distance<=0.001) {
+	    	return;
+	    }
+	    var faceDir = v3_4.subVectors(this.moveToPosition , this.oldPosition);
 	    faceDir.y = 0.0;
 	    this.faceToDir(faceDir);
-	    this.moveDirection.copy(faceDir).normalize();
 	    
 	    var dy = this.moveToPosition.z-this.oldPosition.z;
 	    var dx = this.moveToPosition.x-this.oldPosition.x;
@@ -368,7 +370,6 @@
 	    this.setState(PS_MOVE);
 	    this.pathCurrent +=2;
 	}
-	var g_v3_5=new THREE.Vector3();
 	iPhysics.prototype.updateAutoMove=function( fElapse) {
 		var now = window.now;
 		fElapse=fElapse> 0.016*3 ? 0.016*3 : fElapse;
@@ -385,17 +386,17 @@
 	    var k = (m_pSource.speed*this.stepSpeed*moveToElapse);
 		var x = this.oldPosition.x + this.xIncrement*k;
 		var y = this.oldPosition.z + this.yIncrement*k;
-		if(x<0||y<0) return;
+		if(x<0) x=0;	if(y<0) y=0;
 		m_nextPos.set(x,0,y);
 
     	if (this.stepByX) {
-    		if((m_nextPos.x <= pos.x&&pos.x <= this.moveToPosition.x)
-    			||(this.moveToPosition.x <= pos.x&& pos.x <= m_nextPos.x))
-    				reached = true;
+    		if(this.oldPosition.x<this.moveToPosition.x){
+    			if(m_nextPos.x>=this.moveToPosition.x)reached = true;
+    		}else if(m_nextPos.x<=this.moveToPosition.x)reached = true;
     	} else{
-    		if((m_nextPos.z <= pos.z&&pos.z <= this.moveToPosition.z)
-    	    	||(this.moveToPosition.z <= pos.z&& pos.z <= m_nextPos.z))
-    	    		reached = true;
+    		if(this.oldPosition.z<this.moveToPosition.z){
+    			if(m_nextPos.z>=this.moveToPosition.z)reached = true;
+    		}else if(m_nextPos.z<=this.moveToPosition.z)reached = true;
     	}
     	var isEndPath =reached && this.pathCurrent >= this.path.length;
     	var needsProceed=(isEndPath &&  ((!this.isFullPath)||this.isContinueToFollow()));
@@ -406,10 +407,19 @@
 	            this.pathCurrent=0;
 	            this.finishAutoMove();
         	} else {
-        		m_nextPos.copy( this.moveToPosition );
-        		if(!this.getCollisionObject(0))
-        			pos.set( m_nextPos.x, 0, m_nextPos.z );
-        		this.moveTo(g_v3_5.set(this.path[this.pathCurrent], 0, this.path[this.pathCurrent+1]));
+        		moveToElapse -= this.steps/(m_pSource.speed*this.stepSpeed);
+        		m_pSource.pos=m_nextPos.copy(this.moveToPosition);
+        		this.moveForward();
+        		m_pSource.pos=pos;
+        		
+        		k = (m_pSource.speed*this.stepSpeed*moveToElapse);
+        		k = (k<0)?0:((k>this.steps)? (this.steps):k);
+        		var x = this.oldPosition.x + this.xIncrement*k;
+        		var y = this.oldPosition.z + this.yIncrement*k;
+        		m_nextPos.set(x,0,y);
+        		if(x>0&&y>0&&!this.getCollisionObject(0)){
+        			pos.set( m_nextPos.x, 0, m_nextPos.z );this.moveToElapse = moveToElapse;
+        		} else this.needsFindPath=true;
         	}
         } else {
         	var collision=this.getCollisionObject(true);

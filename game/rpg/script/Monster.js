@@ -11,7 +11,7 @@
 				},
 				boundingBox:{x:20, y:20, z:20},
 				topBoard:{height:40, scale:{x:30, y:3, z:1}},
-				scale:.16//.2 .15 .05 scale:.08
+				scale:.1//.16, r:2
 		};
 		loadModel(model, onLoaded);
 		// model
@@ -48,7 +48,7 @@
 	    		var j = i>=15?i%15:i;
 		    	object.position.copy(team1Positions[j])//rand(20,480),0, rand(20,480)
 		    	scene.add( object );
-		    	new MonsterEntity().setModel(object).setRadius(2);
+		    	new MonsterEntity().setModel(object).setRadius(1.5);
 		    	object.entity.attackCooldownTime=1000*0.36666667461395264;
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		    	new iPhysics(object.entity);
@@ -78,7 +78,7 @@
 	    		var j = i>=15?i%15:i;
 	    		object.position.copy(team2Positions[j]);
 		    	scene.add( object );
-		    	new MonsterEntity().setModel(object).setRadius(2.5);
+		    	new MonsterEntity().setModel(object).setRadius(2.5).speed=25;
 		    	object.entity.attackCooldownTime=1000*0.36666667461395264;
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model2.topBoard);
 		    	new iPhysics(object.entity);
@@ -97,7 +97,7 @@
 	MonsterEntity.prototype =Object.create(iEntity.prototype);
 	function MonsterEntity() {
 		iEntity.call(this, null);
-		var walkSpeed=this.speed=100/4///4;          //移动速度
+		var walkSpeed=this.speed=25/1.5 ///4;          //移动速度
 	    var actRestTme =17000;            //更换待机指令的间隔时间
 	    var lastActTime;          //最近一次指令时间
 	}

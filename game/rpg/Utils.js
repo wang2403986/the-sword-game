@@ -5,7 +5,7 @@ var CM_LDOWN = WM_LBUTTONDOWN, CM_LUP = WM_LBUTTONUP ,CM_RUP = WM_RBUTTONUP,
 	CM_RDOWN = WM_RBUTTONDOWN, CM_LEAVE = WM_MOUSELEAVE;
 Define = { PS_FREE:'free', PS_MOVE:'walk', PS_ATTACK:'attack', PS_DIE:'die', PS_SKILL:'skill'};
 var audioLoader = new THREE.AudioLoader();
-var listener = new THREE.AudioListener();
+var audioListener = new THREE.AudioListener();
 var audiosData={};
 function loadAudio(url, callback){
 	if(!audiosData[url]){
@@ -92,41 +92,6 @@ function getViewport(e) {
 	 if(e){e.width=innerWidth;e.height=innerHeight;return e;}
 	 else return {width: innerWidth, height:innerHeight};
 }
-
-// Converts canvas to an image
-(function() {
-	//var textureLoader=new THREE.TextureLoader();
-	var canvas = document.createElement("canvas");
-	canvas.height = 19+20;
-	var context = canvas.getContext('2d');
-	//context.font="30px Arial";
-	function textSprite(obj, sprite) {
-		var metrics = context.measureText( obj.message );
-		canvas.width = Math.max(metrics.width, 80);
-		//context.fillStyle='#000000';
-			//context.fillText( obj.message, 0,0);
-		context.fillStyle='#000000'
-		context.fillRect( 0,19,80, 5);
-		context.fillStyle='#1fc726'
-		context.fillRect( 0,19, obj.HP*80/100, 5);
-		//var src = canvas.toDataURL("image/png");
-		var map = new THREE.Texture(canvas);
-		if(!sprite) {
-			var spriteMaterial = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
-			sprite = new THREE.Sprite( spriteMaterial );
-			if(!obj.position) sprite.position.set(0,230,0);
-			else sprite.position.set(obj.position.x,obj.position.y,obj.position.z);//0,230,0);
-		}
-		{
-			if(!obj.scale) obj.scale=1;
-			if(!sprite._scaleseted) sprite.scale.set(map.image.width*obj.scale, map.image.height*obj.scale, 1.0);
-			sprite._scaleseted=1;
-			sprite.material.map=map;
-		};
-		return sprite;
-	}
-	window.textSprite=textSprite;
-})()
 
 //annie = new TextureAnimator( runnerTexture, 10, 1, 10, 75 ); // texture, #horiz, #vert, #total, duration.
 function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 

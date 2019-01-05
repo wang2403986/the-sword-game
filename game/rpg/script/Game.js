@@ -154,6 +154,7 @@
 						else {
 							selections[i].physics.autoFindPathMax = now + 30*1000;
 							selections[i].physics.findPath(vec1.copy(target.pos),0);
+							this.attackToMode = false;
 						}
 					}
 				}

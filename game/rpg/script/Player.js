@@ -10,7 +10,7 @@
 		animationsFiles:anims,
 		material:{alphaTest:.5},
 		boundingBox:{x:60, y:160, z:60},
-		scale:.04,
+		scale:.03,//.04
 		position:{x:281.8434354806188, y: 0, z: 259.4504251984771},
 		topBoard:{height:280, scale:{x:100, y:10, z:1}},
 		selectionScale:3
@@ -37,7 +37,7 @@
 		new iPhysics(object.entity);
 		addUpdater(object.entity);
 		addTeamUnit(object.entity, 1, 1);
-		// Ìí¼Ó¹ÖÎï
+		// ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½
 		addMonster();
 		object.entity.attackCooldownTime=1000*1.7666664123535156;//0.36666667461395264
 		object.entity.rangedAttack=true;
@@ -51,15 +51,15 @@
 		} );
     	object.add(object.entity.audio);
     	
-    	var geometry = new THREE.PlaneBufferGeometry( 180, 180 );
+    	var geometry = new THREE.PlaneBufferGeometry( 150, 150 );
     	var vertices = geometry.attributes.position.array;
         for ( var j = 0, l = vertices.length; j < l; j += 3 ) {
         	vertices[ j + 2 ]=-vertices[ j + 1 ];
         	vertices[ j + 1 ]=2;
     	}
     	var texture = THREE.ImageUtils.loadTexture('../assets/materials/Rune1d.png');
-    	var material = new THREE.MeshBasicMaterial( {color: 0xff00ff,depthTest: true,depthWrite:true, alphaMap: texture,
-    		transparent: true,   blending: THREE.NormalBlending } );
+    	var material = new THREE.MeshLambertMaterial( {color: 0xff0000,depthTest: true,depthWrite:true, map: texture,//alphaMap
+    		transparent: true,   blending: THREE.AdditiveBlending } );
     	var cone = new THREE.Mesh( geometry, material );
     	cone.update = function(deltaTime){
     		if(this.visible){
