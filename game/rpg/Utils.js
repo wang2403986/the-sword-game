@@ -4,6 +4,12 @@ var WM_MOUSEWHEEL = 0, WM_LBUTTONDOWN = 1, WM_RBUTTONDOWN = 2, WM_LBUTTONUP = 3,
 var CM_LDOWN = WM_LBUTTONDOWN, CM_LUP = WM_LBUTTONUP ,CM_RUP = WM_RBUTTONUP,
 	CM_RDOWN = WM_RBUTTONDOWN, CM_LEAVE = WM_MOUSELEAVE;
 Define = { PS_FREE:'free', PS_MOVE:'walk', PS_ATTACK:'attack', PS_DIE:'die', PS_SKILL:'skill'};
+
+function distanceToSquared(pos, pos2){
+	var dx=(pos.x>>0)-(pos2.x>>0),dy=(pos.z>>0)-(pos2.z>>0);
+	return dx*dx+dy*dy;
+}
+
 var audioLoader = new THREE.AudioLoader();
 var audioListener = new THREE.AudioListener();
 var audiosData={};
@@ -22,10 +28,6 @@ function loadAudio(url, callback){
 		if(audiosData[url].buffer) callback(audiosData[url].buffer);
 		else audiosData[url].listeners.push(callback);
 	}
-}
-function distanceToSquared(pos, pos2){
-	var dx=(pos.x>>0)-(pos2.x>>0),dy=(pos.z>>0)-(pos2.z>>0);
-	return dx*dx+dy*dy;
 }
 Array.prototype.remove = function (val) {
 	var index = this.indexOf(val);
@@ -133,36 +135,16 @@ function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDurat
 		}
 	};
 }
-/**
- * Mesh播放动画
- */
-function playMeshAnimation(name, loop, clampWhenFinished, restart) {
-	var clip = THREE.AnimationClip.findByName( this.animations, name );
-	if(!clip)return;
-	if(this._preAction ===clip) if(!restart)return; this._preAction = clip;
-	this.mixer.stopAllAction();
-	var action = this.mixer.clipAction( clip );
-	if(loop!== undefined) {
-		action.setLoop(loop?THREE.LoopRepeat: THREE.LoopOnce);
-		action.clampWhenFinished = !loop;
-	}
-	if(clampWhenFinished) action.clampWhenFinished = clampWhenFinished;
-	action.play();
+function addAnimationMixer(object) {
+	var mixer=object.mixer = new THREE.AnimationMixer( object );
+	mixers.push( object.mixer );
+	var actions =object.actions = {};
+	if(object.animations)
+		object.animations.forEach(function (clip){
+			var action = mixer.clipAction( clip );
+			actions[clip.name] = action;
+		})
 }
-function initMeshAnimation(object, speed) {
-	object.animations.forEach(function (clip) {
-		var tracks=clip.tracks, start, times;
-		if(tracks) for(var i00=0;i00<tracks.length;i00++) {
-			start= tracks[i00].times[0], times=tracks[i00].times;
-    		for(var j00=0;j00<times.length;j00++) {
-    			if(start>.1) times[j00]-= start;
-    			if(speed) times[j00]/= speed;
-        	}
-    	}
-    	clip.resetDuration();
-    });
-}
-function rand(low, high) { return low + Math.random() * ( high - low ); }
 function cloneFbx(fbx) {
     var clone = fbx.clone(true);
     clone.animations = fbx.animations;
@@ -207,7 +189,7 @@ function cloneFbx(fbx) {
         //clone.skeleton.bones.push(cloneSkinnedMesh);
         //(_clone$skeleton$bones = clone.skeleton.bones).push.apply(_clone$skeleton$bones, orderedCloneBones);
     }
-    clone.playAction = playMeshAnimation;
+    clone.playAction = fbx.playAction;
     if(fbx.selectionCircleId){
     	clone.selectionCircleId = fbx.selectionCircleId;
     	clone.selectionCircle=clone.children[clone.selectionCircleId];
@@ -238,6 +220,35 @@ function cloneFbx(fbx) {
 			intersects.push(object);
 		}
 		return intersects;
+	}
+	function initMeshAnimation(object, speed) {
+		object.animations.forEach(function (clip) {
+			var tracks=clip.tracks, start, times;
+			if(tracks) for(var i00=0;i00<tracks.length;i00++) {
+				start= tracks[i00].times[0], times=tracks[i00].times;
+	    		for(var j00=0;j00<times.length;j00++) {
+	    			if(start>.1) times[j00]-= start;
+	    			if(speed) times[j00]/= speed;
+	        	}
+	    	}
+	    	clip.resetDuration();
+	    });
+	}
+	function playAction(name, loop, clampWhenFinished, restart) {
+		//var clip = THREE.AnimationClip.findByName( this.animations, name );
+		var action=this.actions[name];
+		if(!action)return;
+		if(this._preAction ===action) if(!restart)return;
+		if(this._preAction) this._preAction.stop();
+		this._preAction = action;
+		//this.mixer.stopAllAction();
+		//var action = this.mixer.clipAction( clip );
+		if(loop!== undefined) {
+			action.setLoop(loop?THREE.LoopRepeat: THREE.LoopOnce);
+			action.clampWhenFinished = !loop;
+		}
+		if(clampWhenFinished) action.clampWhenFinished = clampWhenFinished;
+		action.play();
 	}
 	var loader = new THREE.FBXLoader(), loadedModels={};
 	var points = [], length = 40, circle = 18;
@@ -281,7 +292,7 @@ function cloneFbx(fbx) {
 					object.animations.push(subModel.animations[0]);
 				}
 			}
-			object.playAction = playMeshAnimation;
+			object.playAction = playAction;
 			object.meshs=[];var helperObject=[];
 			object.traverse( function ( child ) {
 				if ( child.isMesh ) {

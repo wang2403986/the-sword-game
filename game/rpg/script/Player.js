@@ -19,8 +19,7 @@
 	loadModel(model, onLoaded);
 	
 	function onLoaded( object ) {
-		object.mixer = new THREE.AnimationMixer( object );
-		mixers.push( object.mixer );
+		addAnimationMixer( object );
 		//var action = object.mixer.clipAction( object.animations[ 0 ] );
 		object.playAction('free');
 		
@@ -37,7 +36,7 @@
 		new iPhysics(object.entity);
 		addUpdater(object.entity);
 		addTeamUnit(object.entity, 1, 1);
-		// ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½
+		// Ìí¼Ó¹ÖÎï
 		addMonster();
 		object.entity.attackCooldownTime=1000*1.7666664123535156;//0.36666667461395264
 		object.entity.rangedAttack=true;
@@ -58,7 +57,7 @@
         	vertices[ j + 1 ]=2;
     	}
     	var texture = THREE.ImageUtils.loadTexture('../assets/materials/Rune1d.png');
-    	var material = new THREE.MeshLambertMaterial( {color: 0xff0000,depthTest: true,depthWrite:true, map: texture,//alphaMap
+    	var material = new THREE.MeshBasicMaterial( {color: 0xff0000,depthTest: true,depthWrite:true, map: texture,//alphaMap
     		transparent: true,   blending: THREE.AdditiveBlending } );
     	var cone = new THREE.Mesh( geometry, material );
     	cone.update = function(deltaTime){

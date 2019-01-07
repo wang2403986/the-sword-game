@@ -1,6 +1,7 @@
 (function(){
 	var PS_MOVE=Define.PS_MOVE, PS_ATTACK=Define.PS_ATTACK, PS_FREE=Define.PS_FREE, PS_SKILL=Define.PS_SKILL;
 	var playerFindPathType = 0,autoFindPathType = 1, autoAttackFindPathType = 2;
+	var nextPos = new THREE.Vector3();
 	window.iPhysics=iPhysics;
 	function iPhysics(source) {
 		this.source = NULL,
@@ -12,7 +13,7 @@
 			source.physics=this;
 		}
 		this.findPathPosition = new THREE.Vector3(Infinity,0,0);
-		this.nextPos=new THREE.Vector3(), this.rotTarget = new THREE.Quaternion();
+		this.nextPos=nextPos, this.rotTarget = new THREE.Quaternion();
 		this.moveToPosition = new THREE.Vector3(Infinity, 0, 0);
 		this.oldPosition = new THREE.Vector3(0, 0, 0);
 		this.destPosition = new THREE.Vector3(Infinity, 0, 0);
@@ -20,13 +21,12 @@
 		this.attackStartPos=new THREE.Vector3(Infinity, 0, 0);
 	}
 	iPhysics.prototype.smoothRotate=function(fElapse) {
-		if(!(this.autoMove||this.state===Define.PS_ATTACK)) return;
+		if(!(this.autoMove||this.state===PS_ATTACK)) return;
 		var quaternion = this.source.model.quaternion;
 	    //缓慢转动到目标点  
 		var t =fElapse*4 > 1? 1 : fElapse*4;
 		THREE.Quaternion.slerp( quaternion, this.rotTarget, quaternion, t);
 	}
-	var g_v3_1=new THREE.Vector3();
 	iPhysics.prototype.update= function(fElapse) {
 	    if (!this.source) return;
 	    //Auto Find Path
@@ -105,11 +105,6 @@
 		this.attackTarget=null;
 		this.isLockTarget=false;
 	}
-	iPhysics.prototype.updateSkillState = function() {
-		if (now- this.skillStartTime>2600){
-			this.stopSkill();
-		}
-	};
 	iPhysics.prototype.startAttack=function() {
 		console.log('startAttack')
 		this.autoMove = false;//stop move state
@@ -135,6 +130,11 @@
 		this.autoMove=false;
 		this.setState(PS_FREE);
 	}
+	iPhysics.prototype.updateSkillState = function() {
+		if (now- this.skillStartTime>2600){
+			this.stopSkill();
+		}
+	};
 	iPhysics.prototype.updateAttackState = function() {
 		//定时寻路
 		if (this.isAutoFindPath) {
@@ -237,7 +237,6 @@
 		this.findPathDiscarded = false;
 		if(dest)
 			this.findPathPosition.copy(dest);
-		this.nextPos.copy(this.source.pos);
 		if(type===playerFindPathType) {
 			this.destPosition.copy(dest),
 			this.stopPosition.copy(dest);
@@ -307,41 +306,32 @@
 		if(findPathType===autoFindPathType)
 			this.findPathPosition.copy(this.destPosition);
 		this.moveToState=0;
-		var i=this.pathCurrent-2, j=this.pathCurrent, moveX, moveY;
+		var i=this.currentPathIndex-2, j=this.currentPathIndex, moveX, moveY, threshold= 0.5, offset = 0.4375;
 //		if(path[i]===path[j] &&path[i+1]===path[j+1] ){
-//			if(j+2> endIndex){
-//				console.error(path);
-//			}
-//			this.pathCurrent+=2;
-//			i=this.pathCurrent-2, j=this.pathCurrent;
+//			this.currentPathIndex+=2;
+//			i=this.currentPathIndex-2, j=this.currentPathIndex;
 //		}
 		this.moveToElapse=0;
-		this.moveToPosition.set(path[this.pathCurrent], 0, path[this.pathCurrent+1]);
-		if(j+3<= endIndex&& 1){
+		this.moveToPosition.set(path[this.currentPathIndex], 0, path[this.currentPathIndex+1]);
+		if(j+3<= endIndex&& 1){//Make the path smoother
 			if(path[i]>>0===path[i+2]>>0 &&path[j+1]===path[j+3]){
-				if(path[i+3]-path[i+1]>=1){
-					moveY = (path[j+1]>>0) -0.4375;
+				var diff = path[i+3]-path[i+1];
+				if(Math.abs(diff)>=threshold){
+					moveY =diff>0 ? (path[j+1]>>0) -offset :  (path[j+1]>>0)+1 +offset;
+					if(Math.abs(diff)<1) moveY = diff>0 ? (path[j+1]>>0) +0.05 : (path[j+1]>>0)+1 -0.05;
 				    moveX = path[j];
 		            path[j] =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-		            if(path[j]!==path[j+2])this.pathCurrent -=2;
-				}else if(path[i+1]-path[i+3]>=1){
-					moveY = (path[j+1]>>0)+1 +0.4375;
-					moveX = path[j];
-					path[j] =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-					if(path[j]!==path[j+2])this.pathCurrent -=2;
-	            }
+		            if(path[j]!==path[j+2])this.currentPathIndex -=2;
+				}
 			}else if(path[i+1]>>0===path[i+3]>>0 &&path[j]===path[j+2]){
-				if(path[i+2]-path[i]>=1){
-					moveX = (path[j]>>0) -0.4375;
+				var diff = path[i+2]-path[i];
+				if(Math.abs(diff)>=threshold){
+					moveX = diff>0? (path[j]>>0) -offset : (path[j]>>0)+1 +offset;
+					if(Math.abs(diff)<1) moveX =diff>0? (path[j]>>0) +0.05 : (path[j]>>0)+1 -0.05;
 					moveY = path[j+1];
 					path[j+1] =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
-					if(path[j+1]!==path[j+3])this.pathCurrent -=2;
-				}else if(path[i]-path[i+2]>=1){
-					moveX = (path[j]>>0)+1 +0.4375;
-		            moveY = path[j+1];
-		            path[j+1] =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
-		            if(path[j+1]!==path[j+3])this.pathCurrent -=2;
-		        }
+					if(path[j+1]!==path[j+3])this.currentPathIndex -=2;
+				}
 			}
 			if(moveX!==undefined) this.moveToPosition.set(moveX,0,moveY);
 		}
@@ -368,7 +358,7 @@
 	    this.yIncrement = dy / this.steps;          //y的每步增量
 	    this.autoMove = true;
 	    this.setState(PS_MOVE);
-	    this.pathCurrent +=2;
+	    this.currentPathIndex +=2;
 	}
 	iPhysics.prototype.updateAutoMove=function( fElapse) {
 		var now = window.now;
@@ -398,13 +388,13 @@
     			if(m_nextPos.z>=this.moveToPosition.z)reached = true;
     		}else if(m_nextPos.z<=this.moveToPosition.z)reached = true;
     	}
-    	var isEndPath =reached && this.pathCurrent >= this.path.length;
+    	var isEndPath =reached && this.currentPathIndex >= this.path.length;
     	var needsProceed=(isEndPath &&  ((!this.isFullPath)||this.isContinueToFollow()));
     	if(needsProceed) this.findPath(this.findPathPosition);
     	if(reached && !needsProceed) {
         	if(isEndPath) {
 	            this.path.length=0;
-	            this.pathCurrent=0;
+	            this.currentPathIndex=0;
 	            this.finishAutoMove();
         	} else {
         		moveToElapse -= this.steps/(m_pSource.speed*this.stepSpeed);
@@ -428,7 +418,7 @@
         		if(physics&&physics.autoMove&&!physics.isWaiting) this.setWaitTime();
         		this.needsFindPath=true;
         		this.path.length=0;
-        		this.pathCurrent=0;
+        		this.currentPathIndex=0;
         	} else {
         		pos.set(m_nextPos.x, 0, m_nextPos.z); this.moveToElapse = moveToElapse;
         	}
@@ -479,10 +469,10 @@
 			this.stopPosition.copy(this.source.pos);
 		}
 		if(this.attackTarget && this.findPathState&& this.isLockTarget){
-			this.attackTarget=false;
+			if(this.state!==PS_ATTACK)this.attackTarget=false;
 			this.stopPosition.copy(this.source.pos);
 		}
-		if(!this.isLockTarget) this.attackTarget=false;
+		if(!this.isLockTarget) if(this.state!==PS_ATTACK)this.attackTarget=false;
 	    this.onMoveToFinished();
 	}
 	

@@ -42,8 +42,7 @@
 				object.bbox=bbox;
 				raycaster_models.push(bbox);
 		    	
-		    	object.mixer = new THREE.AnimationMixer( object );
-	    		mixers.push( object.mixer );
+				addAnimationMixer( object );
 	    		object.playAction('free');
 	    		var j = i>=15?i%15:i;
 		    	object.position.copy(team1Positions[j])//rand(20,480),0, rand(20,480)
@@ -72,8 +71,7 @@
 				object.bbox=bbox;
 				raycaster_models.push(bbox);
 		    	
-		    	object.mixer = new THREE.AnimationMixer( object );
-	    		mixers.push( object.mixer );
+				addAnimationMixer( object );
 	    		object.playAction('free');
 	    		var j = i>=15?i%15:i;
 	    		object.position.copy(team2Positions[j]);

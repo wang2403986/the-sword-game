@@ -14,7 +14,7 @@
 //		[279, 253, 276, 250, 276, 245, 279, 245]
 //		[279.5, 253.5, 276.5, 250.5, 277.5, 245.5, 279.5, 245.5];
 //		collision{x: 279.3, y: 0, z: 248.6} r:1.5;
-//		pathCurrent:6;
+//		currentPathIndex:6;
 //		moveToPosition : Vector3 {x: 277.5, y: 0, z: 245.5};1.5,0.5;
 //		oldPosition Vector3 {x: 276.5, y: 0, z: 250.25};0.5,5.25;//276,245
 //		stepByX false

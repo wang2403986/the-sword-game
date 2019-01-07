@@ -30,8 +30,7 @@
 
 		this.speed =25/1.1 //25;
 		this.rotationSpeed = 10;
-		this.nearbyUnits = [];
-		this.attackTargets=this.nearbyUnits;
+		this.attackTargets = [];
 	}
 	iEntity.prototype.setRadius=function(r) {
 		this.radius=r; this.range= this.radius*1.42; this.attackRange= this.range + 3;
@@ -70,8 +69,9 @@
 	
 	iEntity.prototype.getNearbyUnits  = function(center, radius, limit, friendly,isAutoAttack) {
 		if(!window.g_gameTeams) return;
-		var targets=isAutoAttack?this.nearbyUnits:iEntity.array1, target, minDiatance = Infinity;
+		var targets=isAutoAttack?this.attackTargets:iEntity.array1, target, minDiatance = Infinity;
 		targets.length=0;
+		var distanceToSquared = window.distanceToSquared;
 		for (var i=0; i<g_gameTeams.length;i++) {
 			var teamPlayers = g_gameTeams[i];
 			if(friendly === true) {

@@ -65,8 +65,7 @@
 			}
 			return result;
 		}
-		var ctx, m_startX,m_startY;
-		var g_v3_5=new THREE.Vector3(); var array2=[];
+		var m_startX,m_startY, array2=[];
 		this.update=function() {
 			if(memory===undefined || !tasks.length) return;
 			var unit0 =tasks.shift();
@@ -75,10 +74,13 @@
 			var physics = unit0.physics;
 			var avoidance=physics.attackTarget||physics.skillTarget||physics.findPathType === 2;
 			for (var j=0; j<g_gameUnits.length;j++) {
-				var unit = g_gameUnits[j];
-				var obstacle=unit.physics;
-				if (unit === unit0 ||(!avoidance&&obstacle&&obstacle.autoMove&&!obstacle.isWaiting)) continue;
-				objects[i]=unit.pos.x, objects[i+1]=unit.pos.z, objects[i+2]= unit.radius;
+				var obstacleUnit = g_gameUnits[j];
+				var component=obstacleUnit.physics;
+				if (obstacleUnit === unit0 ||
+					(!avoidance&&component&&component.autoMove&&!component.isWaiting)) continue;
+				objects[i]=obstacleUnit.pos.x;
+				objects[i+1]=obstacleUnit.pos.z;
+				objects[i+2]= obstacleUnit.radius;
 				i+=3; unitsNumber++;
 			}
 			var target = physics.findPathPosition;
@@ -88,8 +90,10 @@
 			var  endX = target.x >> 0, endY = target.z >> 0;
 			var startX = m_startX>> 0, startY = m_startY>> 0;
 			if (physics.path===undefined) physics.path=[];
-			physics.pathCurrent = 2//2;
-			physics.path.length=0; physics.isFindPath=false; physics.needsFindPath=false;
+			physics.currentPathIndex = 2//2;
+			physics.path.length=0;
+			physics.isFindPath=false;
+			physics.needsFindPath=false;
 			physics.findPathState=1;
 			if (physics.findPathType === 2) {// auto find attack target
 				var arr=physics.source.attackTargets, tmpPos=physics.source.pos;
@@ -109,7 +113,7 @@
 				if (pathSize >= 0) {
 			    	if(physics.findPathDiscarded) return;
 			    	physics.attackTarget = arr[f32Array[0]];
-			    	physics.findPathPosition.copy(arr[f32Array[0]].pos);//TODO
+			    	physics.findPathPosition.copy(arr[f32Array[0]].pos);
 			    	physics.isLockTarget=false;
 			    	physics.attackStartPos.copy(physics.source.pos);
 			    	buildPath(pathSize, i32, unit0)
@@ -168,75 +172,73 @@
 		}
 		function buildPath(pathSize, i32, unit0){
 			var physics=unit0.physics;
-			var path = physics.path, length= path.length;
-			path.length=0;
+			var path = physics.path;
+			var length= path.length;
 			path.push(unit0.pos.x );
 			path.push(unit0.pos.z );
 			for(var i=2;i<pathSize;i++) {
 		    	path.push((i32[i]+.5) );
 		    }
 		}
-		//var arr2=[];window.arr2=arr2;
 		function smoothPath(physics){
-			return;
-			if(!physics.arr2)physics.arr2=[];
-			physics.arr2.length=0;
-			var arr2=physics.arr2;
-			var path = physics.path;
-			var length = path.length;
-			var i=0, j=0;
-			arr2.push(path[0]); arr2.push(path[1]);
-			for (j=2; j<length;j+=2){
-				if(arr2[arr2.length-2]===path[j]&&arr2[arr2.length-1]===path[j+1]) continue;
-				arr2.push(path[j]); arr2.push(path[j+1]);
-				i=j-2;
-				var moveX, moveY, nextX, nextY;
-				moveX=undefined;
-				if(j+3< length&& 1){
-					if((path[i]>>0)===(path[i+2]>>0) &&path[j+1]===path[j+3]){
-						if(path[i+3]-path[i+1]>=1){
-						    moveY = (path[j+1]>>0) -0.4375;
-						    moveX = path[j];
-						    nextY = path[j+1];
-						    nextX =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-						    arr2[arr2.length-2]=moveX;
-						    arr2[arr2.length-1]=moveY;
-						    arr2.push(nextX);
-						    arr2.push(nextY);
-						}else if(path[i+1]-path[i+3]>=1){
-							moveY = (path[j+1]>>0)+1 +0.4375;
-							moveX = path[j];
-							nextY = path[j+1];
-							nextX =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-							arr2[arr2.length-2]=moveX;
-						    arr2[arr2.length-1]=moveY;
-						    arr2.push(nextX);
-						    arr2.push(nextY);
-			            }
-					}else if(path[i+1]>>0===path[i+3]>>0 &&path[j]===path[j+2]){
-						if(path[i+2]-path[i]>=1){
-							moveX = (path[j]>>0) -0.4375;
-							moveY = path[j+1];
-							nextX = path[j];
-							nextY =(path[j+1]<path[j+3])? (path[j+1]+1)  :   (path[j+1]-1);
-							arr2[arr2.length-2]=moveX;
-						    arr2[arr2.length-1]=moveY;
-						    arr2.push(nextX);
-						    arr2.push(nextY);
-						}else if(path[i]-path[i+2]>=1){
-				            moveX = (path[j]>>0)+1 +0.4375;
-				            moveY = path[j+1];
-				            nextX = path[j];
-				            nextY =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
-				            arr2[arr2.length-2]=moveX;
-						    arr2[arr2.length-1]=moveY;
-						    arr2.push(nextX);
-						    arr2.push(nextY);
-				        }
-					}
-				}
-			}
-			physics.path=arr2; physics.arr2=path;
+//			if(!physics.arr2)physics.arr2=[];
+//			physics.arr2.length=0;
+//			var arr2=physics.arr2;
+//			var path = physics.path;
+//			var length = path.length;
+//			var i=0, j=0;
+//			arr2.push(path[0]); arr2.push(path[1]);
+//			for (j=2; j<length;j+=2){
+//				if(arr2[arr2.length-2]===path[j]&&arr2[arr2.length-1]===path[j+1]) continue;
+//				arr2.push(path[j]); arr2.push(path[j+1]);
+//				i=j-2;
+//				var moveX, moveY, nextX, nextY;
+//				moveX=undefined;
+//				if(j+3< length&& 1){
+//					if((path[i]>>0)===(path[i+2]>>0) &&path[j+1]===path[j+3]){
+//						if(path[i+3]-path[i+1]>=1){
+//						    moveY = (path[j+1]>>0) -0.4375;
+//						    moveX = path[j];
+//						    nextY = path[j+1];
+//						    nextX =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
+//						    arr2[arr2.length-2]=moveX;
+//						    arr2[arr2.length-1]=moveY;
+//						    arr2.push(nextX);
+//						    arr2.push(nextY);
+//						}else if(path[i+1]-path[i+3]>=1){
+//							moveY = (path[j+1]>>0)+1 +0.4375;
+//							moveX = path[j];
+//							nextY = path[j+1];
+//							nextX =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
+//							arr2[arr2.length-2]=moveX;
+//						    arr2[arr2.length-1]=moveY;
+//						    arr2.push(nextX);
+//						    arr2.push(nextY);
+//			            }
+//					}else if(path[i+1]>>0===path[i+3]>>0 &&path[j]===path[j+2]){
+//						if(path[i+2]-path[i]>=1){
+//							moveX = (path[j]>>0) -0.4375;
+//							moveY = path[j+1];
+//							nextX = path[j];
+//							nextY =(path[j+1]<path[j+3])? (path[j+1]+1)  :   (path[j+1]-1);
+//							arr2[arr2.length-2]=moveX;
+//						    arr2[arr2.length-1]=moveY;
+//						    arr2.push(nextX);
+//						    arr2.push(nextY);
+//						}else if(path[i]-path[i+2]>=1){
+//				            moveX = (path[j]>>0)+1 +0.4375;
+//				            moveY = path[j+1];
+//				            nextX = path[j];
+//				            nextY =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
+//				            arr2[arr2.length-2]=moveX;
+//						    arr2[arr2.length-1]=moveY;
+//						    arr2.push(nextX);
+//						    arr2.push(nextY);
+//				        }
+//					}
+//				}
+//			}
+//			physics.path=arr2; physics.arr2=path;
 		}
 	}
 })()
