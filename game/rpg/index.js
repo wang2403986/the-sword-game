@@ -50,22 +50,13 @@ function init() {
 	mesh.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
 //	mesh.rotation.x = - Math.PI / 2; mesh.position.set(worldSize.x/2,0, worldSize.y/2);
 	mesh.receiveShadow = true;
-	
+	terrin = mesh;
 	scene.add( mesh );
 	
-	var sphereGeometry = new THREE.SphereGeometry(5,20,20);
-    var sphereMaterial = new THREE.MeshStandardMaterial({color:0x7777ff});
-    var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    sphere.position.set(2,5,2)
-    //告诉球需要投射阴影
-    sphere.castShadow = true;
-    scene.add(sphere);
-    
 	var grid = new THREE.GridHelper( worldSize.x, worldSize.x, 0x000000, 0x000000 );
 	grid.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
 	grid.material.opacity = 0.5;
 	grid.material.transparent = true;
-	terrin = mesh;
 	//scene.add( grid );
 
 	renderer = new THREE.WebGLRenderer( { antialias: false } );

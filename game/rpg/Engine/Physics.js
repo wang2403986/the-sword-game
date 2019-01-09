@@ -6,8 +6,7 @@
 	function iPhysics(source) {
 		this.source = NULL,
 		this.autoMove = false,
-		this.state = PS_FREE,
-		this.lockHeight = 0.0;
+		this.state = PS_FREE;
 		if (source) {
 			this.source = source;
 			source.physics=this;
@@ -38,7 +37,7 @@
 	    }
 	    this.updateAutoMove(fElapse);
 	    //地形高度
-	    //this.updateHeight(fElapse);
+	    this.updateHeight(fElapse);
 	    this.smoothRotate(fElapse);
 	    if(this.state===PS_ATTACK)
 	    	this.updateAttackState();
@@ -88,8 +87,10 @@
 		this.findPathDiscarded = true;//stop findPath
 		this.stopAttack()//stop Attack
 		this.setState(PS_SKILL);
-		if(this.skillTarget.pos)
-			new BurstEffect(this.skillTarget.pos);
+		if(this.skillTarget.pos){
+//			new BurstEffect(this.skillTarget.pos);
+			showSkillEffect(0, this.skillTarget);
+		}
 		console.log('startSkill')
 	}
 	iPhysics.prototype.stopSkill=function() {
@@ -256,11 +257,11 @@
 	    if (position.x<0) position.x=0;
 	    if (position.z<0) position.z=0;
 	    var pMap = getMap();
-	    if (!this.lockHInMap || NULL === pMap) {
+	    if (this.fixedHeight || NULL === pMap) {
 	        return;
 	    }
 	    var mh = pMap.getHeight(position.x, position.z);
-	    var h = mh + this.lockHeight;
+	    var h = mh + 0//this.lockHeight;
 //	    if (position.y > h) {
 //	    	position.y -= 9800.0*.001*elapse;//自由下落
 //	    }
