@@ -33,9 +33,16 @@ function Effect(position, EffectTime) {
     		flame = flamePool.pop();
     	} else {
     		flame = new Fire();
-    		flame.numParticles=16;
+    		flame.numParticles=26;
     		flame.texture=flameTexture;
     		flame.opts.opacity=1;
+    		flame.opts.sparkStartSize=(10*100);
+    		flame.opts.sparkEndSize=(20*100);
+    		flame.opts.sparkDistanceScale=2.4;
+    		flame.opts.flameMinHeight= 0.02*200;
+    		flame.opts.flameMaxHeight= 0.2*20;
+    		flame.opts.flamePeriod= 0.5;
+    		flame.opts.gravity=0.05*100*0;
     		flame.init(up);
     	}
     	flame.system.position.copy(position);

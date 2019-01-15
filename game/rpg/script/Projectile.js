@@ -27,6 +27,7 @@ function Projectile(source, attackTarget, m_speed, gravity) {
 	if(position.x===undefined)position=source.pos,target=attackTarget.pos;
 	var transform, g = 9.8*10, speed = 200, verticalSpeed, moveDirection, angleSpeed, angle, totalTime,time=0;
 	speed=40;
+	var m_vLook= new THREE.Vector3();
     this.start =function() {
     	if(m_speed) speed=m_speed;  if(gravity) g=gravity;
     	//transform = new THREE.Sprite( Bullet.material ); transform.scale.set(100,100,1);
@@ -39,7 +40,8 @@ function Projectile(source, attackTarget, m_speed, gravity) {
     	transform.position = transform.system.position;
     	transform.rotation = transform.system.rotation;
     	transform.lookAt = function(e){transform.system.lookAt(e)};
-    	transform.position.copy(position);
+    	transform.position.copy(position).y=5;
+    	m_vLook.copy(target).y=5; target=m_vLook;
     	scene.add( transform.system );
     	var tmepDistance = transform.position.distanceTo (target);
     	var tempTime = tmepDistance / speed; totalTime=tempTime;
@@ -52,14 +54,13 @@ function Projectile(source, attackTarget, m_speed, gravity) {
         var tempTan = verticalSpeed / speed;
         var hu = Math.atan(tempTan);
         angle = (180 / Math.PI * hu);
-        //transform.rotation.x =hu;// -angle ;
+//        transform.rotation.x =hu;// -angle ;
         angleSpeed = angle / riseTime;
  
         moveDirection = new THREE.Vector3().subVectors(target , transform.position).normalize();
         addUpdater(this);
     }
     this.start();
-    var m_vLook= new THREE.Vector3();
     this.update=function (deltaTime)
     {
     	transform.update(deltaTime, (time+deltaTime))
@@ -74,10 +75,10 @@ function Projectile(source, attackTarget, m_speed, gravity) {
         time += deltaTime;
         var test = verticalSpeed - g * time;
         transform.position.add(m_vLook.copy(moveDirection).multiplyScalar(speed * deltaTime));
-        transform.position.y=5;
-       //transform.position.y += test * deltaTime;
+        //transform.position.y=5;
+       transform.position.y += test * deltaTime;
         var testAngle = -angle + angleSpeed * time;
-        //transform.rotation.x = testAngle*Math.PI/180 ;
+        //transform.rotation.y = testAngle*Math.PI/180 ;
     }
 }
 window.Fire=Fire;
@@ -90,17 +91,17 @@ window.Fire=Fire;
       sparkEndSize: 20*100,
       sparkDistanceScale: 1.4,
 
-      flameMinHeight: 0.02*20,
-      flameMaxHeight: 0.2*20,
-      flamePeriod: 0.5,
-      windStrength: 0.14,
-      windFrequency: 0.5,
+      flameMinHeight: 0.02*2,
+      flameMaxHeight: 0.2*2,
+      flamePeriod: 0.5*0,
+      windStrength: 0.14*0,
+      windFrequency: 0.5*0,
 
       color: 0x6e4d00, //0xffcf5c,
       endColor: 0x8e3920, //0xc0988c,
 
-      opacity: 0.7,
-      gravity: 0.05*300,
+      opacity: 1.0,
+      gravity: 0.05*100,
 
       // static - set at start
       baseWidth: 0.8 // angle - multiple of PI

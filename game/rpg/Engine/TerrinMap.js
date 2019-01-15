@@ -47,8 +47,7 @@ function cMap(source){
 		}
         geometry.translate(worldSize.x/2, 0, worldSize.y/2);
         geometry.computeVertexNormals(); //geometry.computeFaceNormals();
-        //scene.add(plane);terrin2 = plane;
-		
+//        scene.add(plane);terrin2 = plane;
 	    m_usefull = true;
 	    return true;
 	}

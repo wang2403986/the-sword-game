@@ -142,6 +142,7 @@ function addAnimationMixer(object) {
 	if(object.animations)
 		object.animations.forEach(function (clip){
 			var action = mixer.clipAction( clip );
+			action.weight = 0;
 			actions[clip.name] = action;
 		})
 }
@@ -240,15 +241,21 @@ function cloneFbx(fbx) {
 		if(!action)return;
 		if(this._preAction ===action) if(!restart)return;
 		if(this._preAction) this._preAction.stop();
-		this._preAction = action;
-		//this.mixer.stopAllAction();
-		//var action = this.mixer.clipAction( clip );
+//		this._preAction = action;
+		var _actions= this.mixer._actions, i=0, length = this.mixer._nActiveActions, e;
+		for (; i < length; i++){
+			e = _actions[i];
+			e.stop();
+			e.weight=0;
+		}
 		if(loop!== undefined) {
 			action.setLoop(loop?THREE.LoopRepeat: THREE.LoopOnce);
 			action.clampWhenFinished = !loop;
 		}
 		if(clampWhenFinished) action.clampWhenFinished = clampWhenFinished;
 		action.play();
+		action.weight=1;
+		this.mixer.currentAction = action;
 	}
 	var loader = new THREE.FBXLoader(), loadedModels={};
 	var points = [], length = 40, circle = 18;

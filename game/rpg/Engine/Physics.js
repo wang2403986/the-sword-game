@@ -2,6 +2,7 @@
 	var PS_MOVE=Define.PS_MOVE, PS_ATTACK=Define.PS_ATTACK, PS_FREE=Define.PS_FREE, PS_SKILL=Define.PS_SKILL;
 	var playerFindPathType = 0,autoFindPathType = 1, autoAttackFindPathType = 2;
 	var nextPos = new THREE.Vector3();
+	var up=new THREE.Vector3(0, 1, 0)
 	window.iPhysics=iPhysics;
 	function iPhysics(source) {
 		this.source = NULL,
@@ -11,20 +12,39 @@
 			this.source = source;
 			source.physics=this;
 		}
+		this.nextPos=nextPos;
 		this.findPathPosition = new THREE.Vector3(Infinity,0,0);
-		this.nextPos=nextPos, this.rotTarget = new THREE.Quaternion();
 		this.moveToPosition = new THREE.Vector3(Infinity, 0, 0);
 		this.oldPosition = new THREE.Vector3(0, 0, 0);
 		this.destPosition = new THREE.Vector3(Infinity, 0, 0);
 		this.stopPosition = new THREE.Vector3(Infinity, 0, 0);
 		this.attackStartPos=new THREE.Vector3(Infinity, 0, 0);
+		this.rotStart = new THREE.Quaternion();
+		this.rotTarget = new THREE.Quaternion();
+		this.orientation= new THREE.Quaternion();
 	}
-	iPhysics.prototype.smoothRotate=function(fElapse) {
-		if(!(this.autoMove||this.state===PS_ATTACK)) return;
-		var quaternion = this.source.model.quaternion;
-	    //缓慢转动到目标点  
-		var t =fElapse*4 > 1? 1 : fElapse*4;
-		THREE.Quaternion.slerp( quaternion, this.rotTarget, quaternion, t);
+	iPhysics.prototype.updateAnimation= function(fElapse) {
+		var riseSpeed = fElapse * 3;
+		var mixer=this.source.model.mixer;
+		var current = mixer.currentAction;
+		if(!current) return;
+		var w =current.weight + riseSpeed;
+		current.weight= Math.min(w,1);
+		var _actions= mixer._actions, i=0, len = mixer._nActiveActions, e;
+		var nActions = len - 1;
+		if(nActions>0)
+		for (; i < len; i++){
+			e = _actions[i];
+			if(current===e) continue;
+			e.weight -= riseSpeed/nActions;
+			if(e.weight<=0){
+				e.weight = 0;
+				e.stop();
+				len--;
+				i--;
+				if(i<0)break;
+			}
+		}
 	}
 	iPhysics.prototype.update= function(fElapse) {
 	    if (!this.source) return;
@@ -35,10 +55,12 @@
 	    		this.isAutoFindPath=true, this.autoFindPathTime=now+700;
 	    	}
 	    }
+	    this.updateAnimation(fElapse);
+	    this.updateOrientation(fElapse);
+	    this.updateRotateAnimation(fElapse);
 	    this.updateAutoMove(fElapse);
 	    //地形高度
 	    this.updateHeight(fElapse);
-	    this.smoothRotate(fElapse);
 	    if(this.state===PS_ATTACK)
 	    	this.updateAttackState();
 	    else if(this.autoMove)
@@ -88,8 +110,8 @@
 		this.stopAttack()//stop Attack
 		this.setState(PS_SKILL);
 		if(this.skillTarget.pos){
-//			new BurstEffect(this.skillTarget.pos);
-			showSkillEffect(0, this.skillTarget);
+			new BurstEffect(this.skillTarget.pos);
+			//showSkillEffect(0,this.source,this.skillTarget);
 		}
 		console.log('startSkill')
 	}
@@ -269,18 +291,54 @@
 	    	position.y = h;
 	    }
 	}
-	
-	var g_v3_2=new THREE.Vector3(), quat_1 = new THREE.Quaternion();
+	var v_look=new THREE.Vector3(0, 1, 0);
+	//缓慢转动到目标点  
+	iPhysics.prototype.updateRotateAnimation=function(fElapse) {
+		if(this.rotateStarted) {
+			var quaternion = this.source.model.quaternion;
+			this.rotateElapse +=  fElapse*5;//5
+			var t=this.rotateElapse / this.rotateTotal;
+			if(!isFinite(t)) t=1;
+			THREE.Quaternion.slerp( this.rotStart, this.rotTarget, quaternion, t);
+			if(t >= 1){
+				this.rotateStarted= 0;
+				quaternion.copy(this.rotTarget);
+			}
+		}
+	}
+	iPhysics.prototype.updateOrientation=function(fElapse) {
+		if(this.backOrientation) {
+			var quaternion = this.orientation;
+			this.orientationElapse +=  fElapse*120;//12
+			var t= this.orientationElapse / this.rotateTotal;
+			if(!isFinite(t)) t=1;
+			THREE.Quaternion.slerp( this.rotStart, this.rotTarget, quaternion, t);
+			v_look.set(0,0,1).applyQuaternion( quaternion );
+		    v_lookAt.set(this.dx, 0, this.dy);
+			var angle = v_look.angleTo(v_lookAt);
+			if(angle<= Math.PI/2){
+				this.backOrientation=0;
+			}
+		}
+	}
+	var quat1=new THREE.Quaternion(); var v_lookAt=new THREE.Vector3();
 	iPhysics.prototype.faceToDir=function(dir) {
 		if (!this.source)
 			return;
-		var look =  g_v3_2.copy(dir), m_pSource=this.source;
-	//  look.y = 0.0;  // !!!
-		look.add(m_pSource.pos);
-		quat_1.copy(m_pSource.model.quaternion);
-	    m_pSource.model.lookAt(look);
+		var lookAt =  v_lookAt.copy(dir), m_pSource=this.source;
+		lookAt.add(m_pSource.pos).y = 0;
+		this.rotStart.copy(m_pSource.model.quaternion);
+	    m_pSource.model.lookAt(lookAt);
 	    this.rotTarget.copy(m_pSource.model.quaternion);
-	    m_pSource.model.quaternion.copy(quat_1);
+	    m_pSource.model.quaternion.copy(this.rotStart);
+	    lookAt.set(0,0,1).applyQuaternion(this.rotStart);
+	    
+	    var angle = lookAt.angleTo(dir);
+	    this.rotateTotal = angle;
+	    this.rotateStarted = 1;
+	    this.rotateElapse=0;
+	    this.orientationElapse=0;
+	    this.backOrientation=1;
 	//    var/*D3DXVECTOR3*/ look(dir), up(0, 1, 0), right;
 	//    look.y = 0.0f;
 	//    D3DXVec3Normalize(look, look);
@@ -314,81 +372,66 @@
 //		}
 		this.moveToElapse=0;
 		this.moveToPosition.set(path[this.currentPathIndex], 0, path[this.currentPathIndex+1]);
-		if(j+3<= endIndex&& 1){//Make the path smoother
-			if(path[i]>>0===path[i+2]>>0 &&path[j+1]===path[j+3]){
-				var diff = path[i+3]-path[i+1];
-				if(Math.abs(diff)>=threshold){
-					moveY =diff>0 ? (path[j+1]>>0) -offset :  (path[j+1]>>0)+1 +offset;
-					if(Math.abs(diff)<1) moveY = diff>0 ? (path[j+1]>>0) +0.05 : (path[j+1]>>0)+1 -0.05;
-				    moveX = path[j];
-		            path[j] =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-		            if(path[j]!==path[j+2])this.currentPathIndex -=2;
-				}
-			}else if(path[i+1]>>0===path[i+3]>>0 &&path[j]===path[j+2]){
-				var diff = path[i+2]-path[i];
-				if(Math.abs(diff)>=threshold){
-					moveX = diff>0? (path[j]>>0) -offset : (path[j]>>0)+1 +offset;
-					if(Math.abs(diff)<1) moveX =diff>0? (path[j]>>0) +0.05 : (path[j]>>0)+1 -0.05;
-					moveY = path[j+1];
-					path[j+1] =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
-					if(path[j+1]!==path[j+3])this.currentPathIndex -=2;
-				}
-			}
-			if(moveX!==undefined) this.moveToPosition.set(moveX,0,moveY);
-		}
+//		if(j+3<= endIndex&& 1){//Make the path smoother
+//			if(path[i]>>0===path[i+2]>>0 &&path[j+1]===path[j+3]){
+//				var diff = path[i+3]-path[i+1];
+//				if(Math.abs(diff)>=threshold){
+//					moveY =diff>0 ? (path[j+1]>>0) -offset :  (path[j+1]>>0)+1 +offset;
+//					if(Math.abs(diff)<1) moveY = diff>0 ? (path[j+1]>>0) +0.05 : (path[j+1]>>0)+1 -0.05;
+//				    moveX = path[j];
+//		            path[j] =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
+//		            if(path[j]!==path[j+2])this.currentPathIndex -=2;
+//				}
+//			}else if(path[i+1]>>0===path[i+3]>>0 &&path[j]===path[j+2]){
+//				var diff = path[i+2]-path[i];
+//				if(Math.abs(diff)>=threshold){
+//					moveX = diff>0? (path[j]>>0) -offset : (path[j]>>0)+1 +offset;
+//					if(Math.abs(diff)<1) moveX =diff>0? (path[j]>>0) +0.05 : (path[j]>>0)+1 -0.05;
+//					moveY = path[j+1];
+//					path[j+1] =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
+//					if(path[j+1]!==path[j+3])this.currentPathIndex -=2;
+//				}
+//			}
+//			if(moveX!==undefined) this.moveToPosition.set(moveX,0,moveY);
+//		}
 	    this.oldPosition.copy(this.source.pos);
 	    iDebugData.push(this.moveToPosition.clone());// TODO
 	    var distance = this.moveToPosition.distanceTo(this.oldPosition);
 	    if(distance<=0.001) {
 	    	return;
 	    }
-	    var faceDir = v3_4.subVectors(this.moveToPosition , this.oldPosition);
-	    faceDir.y = 0.0;
-	    this.faceToDir(faceDir);
-	    
 	    var dy = this.moveToPosition.z-this.oldPosition.z;
 	    var dx = this.moveToPosition.x-this.oldPosition.x;
-	    var abs_dx = Math.abs(dx), abs_dy=Math.abs(dy);
-	    if (abs_dx>abs_dy) {
-	    	this.steps = abs_dx;  this.stepByX=true;
-	    } else {
-	    	this.steps = abs_dy;  this.stepByX=false;
-	    }
-	    this.stepSpeed=this.steps/ distance;
-	    this.xIncrement = dx / this.steps;          //x每步骤增量
-	    this.yIncrement = dy / this.steps;          //y的每步增量
+	    this.distance= Math.sqrt(dx*dx+dy*dy);
+	    this.dx=dx;
+	    this.dy=dy;
 	    this.autoMove = true;
 	    this.setState(PS_MOVE);
 	    this.currentPathIndex +=2;
+
+	    var faceDir = v3_4.set(dx ,0, dy);
+	    this.faceToDir(faceDir);
 	}
 	iPhysics.prototype.updateAutoMove=function( fElapse) {
 		var now = window.now;
 		fElapse=fElapse> 0.016*3 ? 0.016*3 : fElapse;
-	    if (!this.autoMove || this.autoMoveWaitTime > now)
+	    if (!this.autoMove || this.autoMoveWaitTime > now || this.backOrientation)
 	        return;
 	    if(this.needsFindPath)
 	    	return this.findPath(this.findPathPosition);
 	    if(this.isWaiting) this.setState(PS_MOVE),this.isWaiting = false;
-	    var moveToElapse=this.moveToElapse + fElapse;
 	    var m_pSource=this.source, reached =false, m_nextPos=this.nextPos, pos=m_pSource.pos;
-	//	var faceDir = v3_1.subVectors(this.moveToPosition , m_pSource.m_vPos); faceDir.y = 0.0;
-		//var m_vLook= v3_1.set( 0, 0, 1 ).applyQuaternion( m_model.quaternion );
-	  //m_nextPos.copy(m_model.position).add(m_vLook.multiplyScalar(m_pSource.m_speed*fElapse ));
-	    var k = (m_pSource.speed*this.stepSpeed*moveToElapse);
-		var x = this.oldPosition.x + this.xIncrement*k;
-		var y = this.oldPosition.z + this.yIncrement*k;
-		if(x<0) x=0;	if(y<0) y=0;
+    	fElapse = this.moveToElapse + fElapse;
+	    var k = 1/this.distance *m_pSource.speed*fElapse;
+	    
+	    var x = this.oldPosition.x + this.dx * k;
+	    var y = this.oldPosition.z + this.dy * k;
+	    
+		if(x<0) x=0;
+		if(y<0) y=0;
 		m_nextPos.set(x,0,y);
+		if(this.distance<0.0001 || k>=1) reached = true;
 
-    	if (this.stepByX) {
-    		if(this.oldPosition.x<this.moveToPosition.x){
-    			if(m_nextPos.x>=this.moveToPosition.x)reached = true;
-    		}else if(m_nextPos.x<=this.moveToPosition.x)reached = true;
-    	} else{
-    		if(this.oldPosition.z<this.moveToPosition.z){
-    			if(m_nextPos.z>=this.moveToPosition.z)reached = true;
-    		}else if(m_nextPos.z<=this.moveToPosition.z)reached = true;
-    	}
     	var isEndPath =reached && this.currentPathIndex >= this.path.length;
     	var needsProceed=(isEndPath &&  ((!this.isFullPath)||this.isContinueToFollow()));
     	if(needsProceed) this.findPath(this.findPathPosition);
@@ -398,33 +441,44 @@
 	            this.currentPathIndex=0;
 	            this.finishAutoMove();
         	} else {
-        		moveToElapse -= this.steps/(m_pSource.speed*this.stepSpeed);
-        		m_pSource.pos=m_nextPos.copy(this.moveToPosition);
-        		this.moveForward();
-        		m_pSource.pos=pos;
-        		
-        		k = (m_pSource.speed*this.stepSpeed*moveToElapse);
-        		k = (k<0)?0:((k>this.steps)? (this.steps):k);
-        		var x = this.oldPosition.x + this.xIncrement*k;
-        		var y = this.oldPosition.z + this.yIncrement*k;
-        		m_nextPos.set(x,0,y);
-        		if(x>0&&y>0&&!this.getCollisionObject(0)){
-        			pos.set( m_nextPos.x, 0, m_nextPos.z );this.moveToElapse = moveToElapse;
-        		} else this.needsFindPath=true;
+        		this._moveForward(fElapse);
         	}
         } else {
         	var collision=this.getCollisionObject(true);
-        	if (collision)  {
+        	if (collision) {
         		var physics=collision.physics;
         		if(physics&&physics.autoMove&&!physics.isWaiting) this.setWaitTime();
-        		this.needsFindPath=true;
-        		this.path.length=0;
-        		this.currentPathIndex=0;
+    			this.needsFindPath=true;
+    			this.path.length=0;
+	            this.currentPathIndex=0;
         	} else {
-        		pos.set(m_nextPos.x, 0, m_nextPos.z); this.moveToElapse = moveToElapse;
+        		pos.set(m_nextPos.x, 0, m_nextPos.z);
+        		this.moveToElapse = fElapse;
         	}
         }
 	}
+	iPhysics.prototype._moveForward= function(fElapse) {
+		var m_pSource=this.source, m_nextPos=this.nextPos, pos=m_pSource.pos;
+		m_nextPos.copy(this.moveToPosition);
+		fElapse -= (this.distance/m_pSource.speed);
+		m_pSource.pos=m_nextPos;
+		this.moveForward();
+		m_pSource.pos=pos;
+		
+		k = 1/this.distance *m_pSource.speed*fElapse;
+		if (k>1) {
+			k=1;
+		}
+		var x = this.oldPosition.x + this.dx * k;
+	    var y = this.oldPosition.z + this.dy * k;
+		if(x<0) x=0;
+		if(y<0) y=0;
+		m_nextPos.set(x,0,y);
+		if(!this.getCollisionObject(0)){
+			pos.set(m_nextPos.x, 0, m_nextPos.z);
+    		this.moveToElapse = fElapse;
+		} else this.needsFindPath=true;
+	};
 	iPhysics.prototype.isContinueToFollow= function(needsProceed) {
 		if (this.attackTarget) {
 			var targetPos = this.attackTarget.pos;
@@ -433,8 +487,10 @@
 				this.destPosition.copy(targetPos);
 			}
 			return this.findPathPosition.copy(targetPos);
-		} else if(this.skillTarget){
-			var targetPos = this.skillTarget.pos;
+		}
+		var target= this.skillTarget || this.moveToTarget;
+		if(target){
+			var targetPos = target.pos;
 			this.stopPosition.copy(targetPos);
 			this.destPosition.copy(targetPos);
 			return this.findPathPosition.copy(targetPos);
@@ -485,17 +541,23 @@
 	    this.state = state;
 	    this.onStateChange(state,oldState);
 	}
-	iPhysics.prototype.onStateChange=function(newstate, oldSate) {
+	iPhysics.prototype.onStateChange=function(newstate, oldState) {
 		if (!this.source) return;
-		if (this.state === PS_FREE)
-			this.source.playAction(PS_FREE)
-		else if( this.state === PS_MOVE)
-			this.source.playAction(PS_MOVE)
-		else if(this.state === PS_ATTACK )
-			this.source.playAction(PS_ATTACK)
-		else if( this.state === Define.PS_DEAD )
-			this.source.playAction(Define.PS_DEAD);
-		else if( this.state === PS_SKILL )
-			this.source.playAction(PS_SKILL);
+		var model=this.source.model;
+		var mixer= model.mixer;
+		mixer.currentAction = model.actions[this.state];
+		if(mixer.currentAction && !mixer.currentAction.isScheduled()){
+			mixer.currentAction.play();
+		}
+//		if (this.state === PS_FREE)
+//			this.source.playAction(PS_FREE)
+//		else if( this.state === PS_MOVE)
+//			this.source.playAction(PS_MOVE)
+//		else if(this.state === PS_ATTACK )
+//			this.source.playAction(PS_ATTACK)
+//		else if( this.state === Define.PS_DEAD )
+//			this.source.playAction(Define.PS_DEAD);
+//		else if( this.state === PS_SKILL )
+//			this.source.playAction(PS_SKILL);
 	}
 })();

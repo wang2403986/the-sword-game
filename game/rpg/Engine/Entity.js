@@ -29,7 +29,6 @@
 		this._lastAutoAttackTime = Date.now();
 
 		this.speed =25/1.1 //25;
-		this.rotationSpeed = 10;
 		this.attackTargets = [];
 	}
 	iEntity.prototype.setRadius=function(r) {
@@ -61,7 +60,7 @@
 	    if (this.model && this.autoAttackRange 
 	    		&& now > this._autoAttackDelay + this._lastAutoAttackTime) {
 	    	if(this.physics&&this.physics.state!==Define.PS_ATTACK){
-	    		this.getNearbyUnits(this.pos, this.autoAttackRange, 80, false, true);
+	    		this.getNearbyUnits(this.pos, this.autoAttackRange, 50, false, true);
 		    	this._lastAutoAttackTime = Date.now();
 	    	}
 	    }

@@ -30,37 +30,38 @@
 			if(this.time===undefined ||now-this.time>1000){
 				this.time=now;
 				ctx.clearRect(1,1,size-2,size-2);
-//				if(!(window.iDebugData&&iDebugData.length)) return;
-//				var left=iDebugData[0].x, top=iDebugData[0].z;
-//				for(var i=0;i<iDebugData.length;i++){
-//					if(iDebugData[i].x<left)left=iDebugData[i].x;
-//					if(iDebugData[i].z<top)top=iDebugData[i].z;
-//				}
-//				left -=2;
-//				top -=2;
-//				ctx.beginPath();
-//				ctx.moveTo((iDebugData[0].x-left)*cellSize,(iDebugData[0].z-top)*cellSize);
-//				for(var i=0;i<iDebugData.length;i++){
-//					ctx.lineTo((iDebugData[i].x-left)*cellSize,(iDebugData[i].z-top)*cellSize);
-//					//ctx.fillRect((iDebugData[i].x-left)*cellSize,(iDebugData[i].z-top)*cellSize, cellSize,cellSize);
-//				}
-//				ctx.stroke();
-				
-				if(!window.g_gameUnits) return;
-				for (var j=0; j<g_gameUnits.length;j++) {
-					var unit = g_gameUnits[j];
-					var r = unit.radius;
-					var x=unit.pos.x,y=unit.pos.z;
-					x=x-r/2;y=y-r/2;
-					r=r<4?4:r;
-					ctx.fillRect(x/2,y/2,r,r);
+				if(!(window.iDebugData&&iDebugData.length)) return;
+				var left=iDebugData[0].x, top=iDebugData[0].z;
+				for(var i=0;i<iDebugData.length;i++){
+					if(iDebugData[i].x<left)left=iDebugData[i].x;
+					if(iDebugData[i].z<top)top=iDebugData[i].z;
 				}
-				var x=camera.position.x/2-20,y=camera.position.z/2-20;
+				left -=2;
+				top -=2;
+				ctx.fillRect((iDebugData[0].x-left)*cellSize-2,(iDebugData[0].z-top)*cellSize-2, 4,4);
 				ctx.beginPath();
-				ctx.moveTo(x,y);
-				ctx.lineTo(x+20,y); ctx.lineTo(x+20,y+20);
-				ctx.lineTo(x,y+20); ctx.lineTo(x,y);
+				ctx.moveTo((iDebugData[0].x-left)*cellSize,(iDebugData[0].z-top)*cellSize);
+				for(var i=0;i<iDebugData.length;i++){
+					ctx.lineTo((iDebugData[i].x-left)*cellSize,(iDebugData[i].z-top)*cellSize);
+					//ctx.fillRect((iDebugData[i].x-left)*cellSize,(iDebugData[i].z-top)*cellSize, cellSize,cellSize);
+				}
 				ctx.stroke();
+				
+//				if(!window.g_gameUnits) return;
+//				for (var j=0; j<g_gameUnits.length;j++) {
+//					var unit = g_gameUnits[j];
+//					var r = unit.radius;
+//					var x=unit.pos.x,y=unit.pos.z;
+//					x=x-r/2;y=y-r/2;
+//					r=r<4?4:r;
+//					ctx.fillRect(x/2,y/2,r,r);
+//				}
+//				var x=camera.position.x/2-20,y=camera.position.z/2-20;
+//				ctx.beginPath();
+//				ctx.moveTo(x,y);
+//				ctx.lineTo(x+20,y); ctx.lineTo(x+20,y+20);
+//				ctx.lineTo(x,y+20); ctx.lineTo(x,y);
+//				ctx.stroke();
 			}
 		}
 		addUpdater(this);

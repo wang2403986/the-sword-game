@@ -49,7 +49,7 @@
 			var y1= (unit0.nextPos.z*scale)>>0;
 			var r0=unit0.radius, collision, result;
 			x1 = x1- (r0>>0), y1 = y1-(r0>>0);
-			var physics;
+			var physics,g_gameUnits=window.g_gameUnits;
 			for (var j=0; j<g_gameUnits.length;j++) {
 				var unit = g_gameUnits[j];
 				if(unit === unit0) continue;
@@ -95,6 +95,7 @@
 			physics.isFindPath=false;
 			physics.needsFindPath=false;
 			physics.findPathState=1;
+			physics.collisionCount=0;
 			if (physics.findPathType === 2) {// auto find attack target
 				var arr=physics.source.attackTargets, tmpPos=physics.source.pos;
 				array2.length=0;

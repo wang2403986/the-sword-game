@@ -1,28 +1,19 @@
 (function () {
-
 	// source: https://github.com/greggman/tdl/blob/master/tdl/particles.js
 	// ported to three.js by fazeaction
-
 	var CORNERS_ = [
-
 		[ - 0.5, - 0.5 ],
 		[ + 0.5, - 0.5 ],
 		[ + 0.5, + 0.5 ],
 		[ - 0.5, + 0.5 ]
-
 	];
-
 	function createDefaultClock_ ( particleSystem ) {
-
 		return function () {
-
 			var now = particleSystem.now_;
 			var base = particleSystem.timeBase_;
 
 			return ( now.getTime() - base.getTime() ) / 1000.0;
-
 		}
-
 	}
 
 	var POSITION_START_TIME_IDX = 0;
@@ -720,18 +711,18 @@
 //		camera.position.set( 0, 5, 15 );
 //
 		particleSystem = new ParticleSystem( scene, camera );
-		setupFlame( particleSystem );
+//		setupFlame( particleSystem );
 		setupNaturalGasFlame( particleSystem );
-		setupSmoke( particleSystem );
-		setupWhiteEnergy( particleSystem );
+//		setupSmoke( particleSystem );
+//		setupWhiteEnergy( particleSystem );
 		setupRipples( particleSystem );
-		setupText( particleSystem );
-		setupRain( particleSystem );
-		setupAnim( particleSystem );
-		setupBall( particleSystem );
-		setupCube( particleSystem );
+//		setupText( particleSystem );
+//		setupRain( particleSystem );
+//		setupAnim( particleSystem );
+//		setupBall( particleSystem );
+//		setupCube( particleSystem );
 		setupPoof( particleSystem );
-		setupTrail( particleSystem );
+//		setupTrail( particleSystem );
 
 //		renderer.gammaInput = true;
 //		renderer.gammaOutput = true;
@@ -990,7 +981,7 @@
 
 	function setupBall( particleSystem ) {
 
-		var texture = new THREE.TextureLoader().load( 'textures/ripple.png' );
+		var texture = new THREE.TextureLoader().load( '../assets/materials/particle/ripple.png' );
 		texture.minFilter = THREE.LinearMipMapLinearFilter;
 		texture.magFilter = THREE.LinearFilter;
 
@@ -1029,15 +1020,11 @@
 				parameters.orientation = [ q.x, q.y, q.z, q.w ];
 
 			} );
-
 		scene.add( emitter );
-
 	}
-
-
 	function setupCube( particleSystem ) {
 
-		var texture = new THREE.TextureLoader().load( 'textures/ripple.png' );
+		var texture = new THREE.TextureLoader().load( '../assets/materials/particle/ripple.png' );
 		texture.minFilter = THREE.LinearMipMapLinearFilter;
 		texture.magFilter = THREE.LinearFilter;
 
@@ -1079,13 +1066,9 @@
 				parameters.position = [ position.x * len, position.y * len, position.z * len ];
 
 			} );
-
 		scene.add( emitter );
-
 	}
-
 	function setupPoof( particleSystem ) {
-
 		var emitter = particleSystem.createParticleEmitter();
 		emitter.setState( THREE.AdditiveBlending );
 		emitter.setColorRamp(
@@ -1126,7 +1109,7 @@
 
 	}
 
-	window.showSkillEffect = function(id, target){
+	window.showSkillEffect = function(id, source, target){
 		triggerPoof([target.pos.x, 3, target.pos.z])
 	};
 	function triggerPoof(pos) {

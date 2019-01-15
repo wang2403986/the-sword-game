@@ -69,7 +69,7 @@
 		}
 	}
 	
-	new cMap().loadMap();
+//	new cMap().loadMap();// TODO
 	var selectionStart=false, isDraged=false, mouseStart=new THREE.Vector2(), touchStartX, touchStartY;
 	document.addEventListener('mousedown', function(event){
 		isDraged = false;
