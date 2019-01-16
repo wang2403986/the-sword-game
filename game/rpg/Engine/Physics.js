@@ -396,15 +396,24 @@
 //		}
 	    this.oldPosition.copy(this.source.pos);
 	    iDebugData.push(this.moveToPosition.clone());// TODO
-	    var distance = this.moveToPosition.distanceTo(this.oldPosition);
-	    if(distance<=0.001) {
-	    	return;
-	    }
-	    var dy = this.moveToPosition.z-this.oldPosition.z;
+
 	    var dx = this.moveToPosition.x-this.oldPosition.x;
-	    this.distance= Math.sqrt(dx*dx+dy*dy);
-	    this.dx=dx;
-	    this.dy=dy;
+	    var dy = this.moveToPosition.z-this.oldPosition.z;
+	    var $dx = Math.abs(dx), $dy=Math.abs(dy);
+	    if ($dx > $dy) {
+	    	this.stepByX = true;
+	    	this.steps = $dx;
+	    } else{
+	    	this.stepByX = false;
+	    	this.steps = $dy;
+	    }
+	    var distance = Math.sqrt(dx*dx+dy*dy);
+	    if(distance<=0.001)
+	    	return;
+	    this.stepSpeed=this.steps/ distance;
+	    this.dx=dx / this.steps;
+	    this.dy=dy / this.steps;
+	    
 	    this.autoMove = true;
 	    this.setState(PS_MOVE);
 	    this.currentPathIndex +=2;
@@ -420,28 +429,20 @@
 	    if(this.needsFindPath)
 	    	return this.findPath(this.findPathPosition);
 	    if(this.isWaiting) this.setState(PS_MOVE),this.isWaiting = false;
-	    var m_pSource=this.source, reached =false, m_nextPos=this.nextPos, pos=m_pSource.pos;
-    	fElapse = this.moveToElapse + fElapse;
-	    var k = 1/this.distance *m_pSource.speed*fElapse;
-	    
-	    var x = this.oldPosition.x + this.dx * k;
-	    var y = this.oldPosition.z + this.dy * k;
-	    
-		if(x<0) x=0;
-		if(y<0) y=0;
-		m_nextPos.set(x,0,y);
-		if(this.distance<0.0001 || k>=1) reached = true;
+	    var m_pSource=this.source, m_nextPos=this.nextPos, pos=m_pSource.pos;
+    	var moveToElapse = this.moveToElapse + fElapse;
+		var reached = this.calculateNextPos(moveToElapse);
 
     	var isEndPath =reached && this.currentPathIndex >= this.path.length;
-    	var needsProceed=(isEndPath &&  ((!this.isFullPath)||this.isContinueToFollow()));
-    	if(needsProceed) this.findPath(this.findPathPosition);
-    	if(reached && !needsProceed) {
+    	var continueToMove=(isEndPath &&  ((!this.isFullPath)||this.isContinueToFollow()));
+    	if(continueToMove) this.findPath(this.findPathPosition);
+    	if(reached && !continueToMove) {
         	if(isEndPath) {
 	            this.path.length=0;
 	            this.currentPathIndex=0;
 	            this.finishAutoMove();
         	} else {
-        		this._moveForward(fElapse);
+        		this._moveToNextPath(moveToElapse);
         	}
         } else {
         	var collision=this.getCollisionObject(true);
@@ -453,27 +454,41 @@
 	            this.currentPathIndex=0;
         	} else {
         		pos.set(m_nextPos.x, 0, m_nextPos.z);
-        		this.moveToElapse = fElapse;
+        		this.moveToElapse = moveToElapse;
         	}
         }
 	}
-	iPhysics.prototype._moveForward= function(fElapse) {
-		var m_pSource=this.source, m_nextPos=this.nextPos, pos=m_pSource.pos;
-		m_nextPos.copy(this.moveToPosition);
-		fElapse -= (this.distance/m_pSource.speed);
-		m_pSource.pos=m_nextPos;
-		this.moveForward();
-		m_pSource.pos=pos;
-		
-		k = 1/this.distance *m_pSource.speed*fElapse;
-		if (k>1) {
-			k=1;
+	iPhysics.prototype.calculateNextPos= function(moveToElapse) {
+		var reached=0;
+		var k = this.source.speed*this.stepSpeed*moveToElapse;
+		if(this.stepByX) {
+			var x = this.oldPosition.x + this.dx * k;
+			k = Math.abs( x - this.oldPosition.x );
+		    var y = this.oldPosition.z + this.dy * k;
+		} else {
+			var y = this.oldPosition.z + this.dy * k;
+			k = Math.abs( y - this.oldPosition.z );
+			var x = this.oldPosition.x + this.dx * k;
 		}
-		var x = this.oldPosition.x + this.dx * k;
-	    var y = this.oldPosition.z + this.dy * k;
 		if(x<0) x=0;
 		if(y<0) y=0;
-		m_nextPos.set(x,0,y);
+		this.nextPos.set(x,0,y);
+		if(k>= this.steps)
+	    	reached = 1;
+		if (reached) {
+			this.nextPos.copy(this.moveToPosition);
+		}
+		return reached;
+	};
+	iPhysics.prototype._moveToNextPath= function(fElapse) {
+		var m_pSource=this.source, m_nextPos=this.nextPos, pos=m_pSource.pos;
+		fElapse -= this.steps/(m_pSource.speed*this.stepSpeed);
+		
+		m_pSource.pos = m_nextPos.copy(this.moveToPosition);
+		this.moveForward();
+		m_pSource.pos = pos;
+		
+		this.calculateNextPos(fElapse);
 		if(!this.getCollisionObject(0)){
 			pos.set(m_nextPos.x, 0, m_nextPos.z);
     		this.moveToElapse = fElapse;
