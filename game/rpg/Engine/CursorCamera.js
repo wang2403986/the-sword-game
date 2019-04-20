@@ -1,5 +1,5 @@
 (function(){
-	var g_pCamera_ = NULL;//CCursorCamera
+	var g_pCamera_ = null;//CCursorCamera
 	window.getCamera =function () {
 		return g_pCamera_;
 	};

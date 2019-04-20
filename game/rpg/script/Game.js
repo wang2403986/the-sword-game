@@ -148,12 +148,12 @@
 				entity.position.set(pos.x,pos.y,pos.z);
 				entity.visible=true; entity.lifeTime=now + 800;
 				for (var i=0;i<selections.length;i++) {
-					if(selections[i].physics&& selections[i]!==target ){
+					if(selections[i].aiComponent&& selections[i]!==target ){
 						if(selections[i].teamId!==target.teamId)
-							selections[i].physics.setAttackTarget(target);
+							selections[i].aiComponent.setAttackTarget(target);
 						else {
-							selections[i].physics.autoFindPathMax = now + 30*1000;
-							selections[i].physics.findPath(vec1.copy(target.pos),0);
+							selections[i].aiComponent.autoFindPathMax = now + 30*1000;
+							selections[i].aiComponent.findPath(vec1.copy(target.pos),0);
 							this.attackToMode = false;
 						}
 					}
@@ -163,14 +163,14 @@
 			var intersects = raycaster.intersectObjects( [terrin] );
 			if (intersects.length)  {
 				var pos =intersects[0].point;
-//					player.physics.breakAutoMove();
+//					player.aiComponent.breakAutoMove();
 				var entity = window.cursorEntity;showClickEffects()
 				entity.position.set(pos.x,pos.y,pos.z);
 				entity.visible=true; entity.lifeTime=now + 800;
 				var maxRadius=0;
 				for (var i=0;i<selections.length;i++) {
-					if(selections[i].physics){
-						selections[i].physics.autoFindPathMax = now + 30*1000;
+					if(selections[i].aiComponent){
+						selections[i].aiComponent.autoFindPathMax = now + 30*1000;
 						if(selections[i].radius>maxRadius) maxRadius=selections[i].radius
 					}
 				}
@@ -193,9 +193,9 @@
 				for (var i=left;i<=rigt;i++)
 					for (var j=left;j<=rigt;j++) {
 						if(c>=size) break;
-						if(selections[c].physics){
-							var physics=selections[c].physics;
-							physics.findPath(vec1.set(centerX+maxRadius*i,0,centerY+maxRadius*j),0);
+						if(selections[c].aiComponent){
+							var aiComponent=selections[c].aiComponent;
+							aiComponent.findPath(vec1.set(centerX+maxRadius*i,0,centerY+maxRadius*j),0);
 						}
 						c++;
 					}
@@ -213,7 +213,7 @@
 			document.body.style.cursor='pointer';
 			if(intersects.length > 0 ) {
 				skillTarget = intersects[0].object._model.entity;
-				player.entity.physics.setSkillTarget(skillTarget);
+				player.entity.aiComponent.setSkillTarget(skillTarget);
 			}
 			return;
 		}

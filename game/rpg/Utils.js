@@ -1,4 +1,3 @@
-var NULL = null, D3DX_PI=Math.PI;
 var WM_MOUSEWHEEL = 0, WM_LBUTTONDOWN = 1, WM_RBUTTONDOWN = 2, WM_LBUTTONUP = 3,
 	WM_RBUTTONUP = 4, WM_MOUSEMOVE = 5, WM_MOUSELEAVE = 6;
 var CM_LDOWN = WM_LBUTTONDOWN, CM_LUP = WM_LBUTTONUP ,CM_RUP = WM_RBUTTONUP,
@@ -236,18 +235,14 @@ function cloneFbx(fbx) {
 	    });
 	}
 	function playAction(name, loop, clampWhenFinished, restart) {
-		//var clip = THREE.AnimationClip.findByName( this.animations, name );
 		var action=this.actions[name];
 		if(!action)return;
-		if(this._preAction ===action) if(!restart)return;
-		if(this._preAction) this._preAction.stop();
-//		this._preAction = action;
 		var _actions= this.mixer._actions, i=0, length = this.mixer._nActiveActions, e;
 		for (; i < length; i++){
 			e = _actions[i];
-			e.stop();
 			e.weight=0;
 		}
+		this.mixer.stopAllAction();
 		if(loop!== undefined) {
 			action.setLoop(loop?THREE.LoopRepeat: THREE.LoopOnce);
 			action.clampWhenFinished = !loop;

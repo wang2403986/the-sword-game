@@ -42,14 +42,14 @@
 	    }
 		this.getCollisionObject = function(unit0, preferMovingUnit) {
 			var scale=scaleFactor;
-			unit0.nextPos=unit0.physics.nextPos;
+			unit0.nextPos=unit0.aiComponent.nextPos;
 			var x0= (unit0.pos.x*scale)>>0;
 			var y0= (unit0.pos.z*scale)>>0;
 			var x1= (unit0.nextPos.x*scale)>>0;
 			var y1= (unit0.nextPos.z*scale)>>0;
 			var r0=unit0.radius, collision, result;
 			x1 = x1- (r0>>0), y1 = y1-(r0>>0);
-			var physics,g_gameUnits=window.g_gameUnits;
+			var aiComponent,g_gameUnits=window.g_gameUnits;
 			for (var j=0; j<g_gameUnits.length;j++) {
 				var unit = g_gameUnits[j];
 				if(unit === unit0) continue;
@@ -58,8 +58,8 @@
 				  startX = centerX- (radius>>0), startY = centerY-(radius>>0);
 				collision =isCollisionWithRect(x1,  y1,  2*r0, 2*r0,  startX, startY, 2*radius,  2*radius);
 				if (collision) {
-					result = unit; physics=unit.physics;
-					if(!preferMovingUnit || (physics&&physics.autoMove && !physics.isWaiting))
+					result = unit; aiComponent=unit.aiComponent;
+					if(!preferMovingUnit || (aiComponent&&aiComponent.autoMove && !aiComponent.isWaiting))
 						return unit;
 				}
 			}
@@ -71,11 +71,11 @@
 			var unit0 =tasks.shift();
 			var scale = scaleFactor;
 			var i=0, unitsNumber=0;
-			var physics = unit0.physics;
-			var avoidance=physics.attackTarget||physics.skillTarget||physics.findPathType === 2;
+			var aiComponent = unit0.aiComponent;
+			var avoidance=aiComponent.attackTarget||aiComponent.skillTarget||aiComponent.findPathType === 2;
 			for (var j=0; j<g_gameUnits.length;j++) {
 				var obstacleUnit = g_gameUnits[j];
-				var component=obstacleUnit.physics;
+				var component=obstacleUnit.aiComponent;
 				if (obstacleUnit === unit0 ||
 					(!avoidance&&component&&component.autoMove&&!component.isWaiting)) continue;
 				objects[i]=obstacleUnit.pos.x;
@@ -83,21 +83,21 @@
 				objects[i+2]= obstacleUnit.radius;
 				i+=3; unitsNumber++;
 			}
-			var target = physics.findPathPosition;
-			if(physics.findPathType === 1) target=physics.destPosition;
+			var target = aiComponent.findPathPosition;
+			if(aiComponent.findPathType === 1) target=aiComponent.destPosition;
 			
 			m_startX=unit0.pos.x*scale, m_startY=unit0.pos.z*scale;
 			var  endX = target.x >> 0, endY = target.z >> 0;
 			var startX = m_startX>> 0, startY = m_startY>> 0;
-			if (physics.path===undefined) physics.path=[];
-			physics.currentPathIndex = 2//2;
-			physics.path.length=0;
-			physics.isFindPath=false;
-			physics.needsFindPath=false;
-			physics.findPathState=1;
-			physics.collisionCount=0;
-			if (physics.findPathType === 2) {// auto find attack target
-				var arr=physics.source.attackTargets, tmpPos=physics.source.pos;
+			if (aiComponent.path===undefined) aiComponent.path=[];
+			aiComponent.currentPathIndex = 2//2;
+			aiComponent.path.length=0;
+			aiComponent.findPathInProgress=false;
+			aiComponent.needsFindPath=false;
+			aiComponent.findPathState=1;
+			aiComponent.collisionCount=0;
+			if (aiComponent.findPathType === 2) {// auto find attack target
+				var arr=aiComponent.source.attackTargets, tmpPos=aiComponent.source.pos;
 				array2.length=0;
 				for(var i=0;i<arr.length;i++)
 					if(!arr[i].isDead)array2.push(arr[i]);
@@ -112,16 +112,16 @@
 				}
 				var pathSize = app.findPathAttack(unitsNumber, unit0.radius, m_startX, m_startY, arr.length,unit0.attackRange);
 				if (pathSize >= 0) {
-			    	if(physics.findPathDiscarded) return;
-			    	physics.attackTarget = arr[f32Array[0]];
-			    	physics.findPathPosition.copy(arr[f32Array[0]].pos);
-			    	physics.isLockTarget=false;
-			    	physics.attackStartPos.copy(physics.source.pos);
+			    	if(aiComponent.findPathDiscarded) return;
+			    	aiComponent.attackTarget = arr[f32Array[0]];
+			    	aiComponent.findPathPosition.copy(arr[f32Array[0]].pos);
+			    	aiComponent.isLockTarget=false;
+			    	aiComponent.attackStartPos.copy(aiComponent.source.pos);
 			    	buildPath(pathSize, i32, unit0)
-					physics.isFullPath=true;
-					if(physics.path.length>2){
-						smoothPath(physics);
-						physics.moveForward( physics.findPathType,1);
+					aiComponent.isFullPath=true;
+					if(aiComponent.path.length>2){
+						smoothPath(aiComponent);
+						aiComponent.moveForward( aiComponent.findPathType,1);
 					}
 			    }
 			} else {
@@ -129,26 +129,26 @@
 				if (pathSize=== -1) {
 					unit0.pos.x=i32[0]+.5; unit0.pos.z=i32[1]+.5;
 					console.error('pathSize=== -1');
-					physics.autoFindPathTime = now + 1000;
+					aiComponent.autoFindPathTime = now + 1000;
 				} else if (pathSize<=1) {
-					physics.finishAutoMove(true)
-					physics.autoFindPathTime = now + 1500;
+					aiComponent.finishAutoMove(true)
+					aiComponent.autoFindPathTime = now + 1500;
 				} else if (pathSize > 2) {
-			    	physics.autoFindPathTime = now + 10000;
-			    	if(physics.findPathDiscarded) return;
+			    	aiComponent.autoFindPathTime = now + 10000;
+			    	if(aiComponent.findPathDiscarded) return;
 			    	buildPath(pathSize, i32, unit0)
-//				    console.log(physics.path)
+//				    console.log(aiComponent.path)
 				    var distance = unit0.radius*2;
 				    var left = startX-MAP_SIZE/2, top=startY-MAP_SIZE/2;
 					if(left<0)left=0; if(top<0)top=0;
 					var toX = endX-left, toY =endY-top;
-					physics.isFullPath=!(toX<0||toY<0||toX>=MAP_SIZE||toY>=MAP_SIZE);
-				    //physics.isFullPath = Math.abs(endX-i32[pathSize-1])<=distance &&Math.abs(endY-i32[pathSize])<=distance;
+					aiComponent.isFullPath=!(toX<0||toY<0||toX>=MAP_SIZE||toY>=MAP_SIZE);
+				    //aiComponent.isFullPath = Math.abs(endX-i32[pathSize-1])<=distance &&Math.abs(endY-i32[pathSize])<=distance;
 					if(!window.iDebugData)window.iDebugData=[];
 					iDebugData.length=0;
 					iDebugData.push(unit0.pos.clone());
-					smoothPath(physics);
-				    physics.moveForward( physics.findPathType,1);
+					smoothPath(aiComponent);
+				    aiComponent.moveForward( aiComponent.findPathType,1);
 			    }
 			}
 			
@@ -172,8 +172,8 @@
 		    return arr;
 		}
 		function buildPath(pathSize, i32, unit0){
-			var physics=unit0.physics;
-			var path = physics.path;
+			var aiComponent=unit0.aiComponent;
+			var path = aiComponent.path;
 			var length= path.length;
 			path.push(unit0.pos.x );
 			path.push(unit0.pos.z );
@@ -181,11 +181,11 @@
 		    	path.push((i32[i]+.5) );
 		    }
 		}
-		function smoothPath(physics){
-//			if(!physics.arr2)physics.arr2=[];
-//			physics.arr2.length=0;
-//			var arr2=physics.arr2;
-//			var path = physics.path;
+		function smoothPath(aiComponent){
+//			if(!aiComponent.arr2)aiComponent.arr2=[];
+//			aiComponent.arr2.length=0;
+//			var arr2=aiComponent.arr2;
+//			var path = aiComponent.path;
 //			var length = path.length;
 //			var i=0, j=0;
 //			arr2.push(path[0]); arr2.push(path[1]);
@@ -239,7 +239,7 @@
 //					}
 //				}
 //			}
-//			physics.path=arr2; physics.arr2=path;
+//			aiComponent.path=arr2; aiComponent.arr2=path;
 		}
 	}
 })()

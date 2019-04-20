@@ -1,4 +1,4 @@
-cMap.g_map_ = NULL;
+cMap.g_map_ = null;
 function getMap()
 {
     return cMap.g_map_;
@@ -17,8 +17,8 @@ function cMap(source){
     m_pSource = source,
     m_usefull = false,
     //m_renderNodes = [], m_mapNodes=[],
-    m_pActiveObj = NULL,
-    m_pSelectObj = NULL,
+    m_pActiveObj = null,
+    m_pSelectObj = null,
     mapTexture, m_pTData, m_vrows = 41, m_vcols= 41;
 	//var group = new THREE.Group();
 	//scene.add(group); 

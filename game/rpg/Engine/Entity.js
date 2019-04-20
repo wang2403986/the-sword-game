@@ -12,8 +12,8 @@
 		this.rangedAttack=false;
 		this.attackCooldownTime=650,this.attackCastTime=300,this.attackDamage=1;
 		this.id = generateID();
-		this.maxHP=100;//满血生命值
-		this.HP=100;//生命值
+		this.maxHP=100;// max Health point满血生命值
+		this.HP=100;//Health point
 		this.MP=100;//魔法值
 		this.EXP=0;//经验
 		this.defense=0;//防御
@@ -24,7 +24,7 @@
 		this.radius= 3;//0.5~10, default 3
 		this.range= this.radius*1.42;
 		this.chaseRange= 44, this.attackRange= this.range + 3;
-		this.autoAttackRange= 28;//主动攻击范围
+		this.acquisitionRange= 28;//主动攻击范围
 		this._autoAttackDelay = g_autoAttackDelay; g_autoAttackDelay += g_autoAttackDelayDelta;
 		this._lastAutoAttackTime = Date.now();
 
@@ -54,13 +54,13 @@
 	    if (this.showDistance > 0) {
 	    	//this.show(this.showDistance >= this.distToPlayer());
 	    }
-	    if (this.physics!==undefined) {
-	    	this.physics.update(elapse);
+	    if (this.aiComponent!==undefined) {
+	    	this.aiComponent.update(elapse);
 	    }
-	    if (this.model && this.autoAttackRange 
+	    if (this.model && this.acquisitionRange 
 	    		&& now > this._autoAttackDelay + this._lastAutoAttackTime) {
-	    	if(this.physics&&this.physics.state!==Define.PS_ATTACK){
-	    		this.getNearbyUnits(this.pos, this.autoAttackRange, 50, false, true);
+	    	if(this.aiComponent&&this.aiComponent.state!==Define.PS_ATTACK){
+	    		this.getNearbyUnits(this.pos, this.acquisitionRange, 50, false, true);
 		    	this._lastAutoAttackTime = Date.now();
 	    	}
 	    }
@@ -119,9 +119,9 @@
 	};
 	iEntity.prototype.onDead=function() {
 		this.isDead = 1;
-		this.physics.state=Define.PS_DIE;
+		this.aiComponent.state=Define.PS_DIE;
 		this.playAction('die', false);
-		this.physics=null;
+		this.aiComponent=null;
 	};
 /*************************************************/
 })()

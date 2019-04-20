@@ -33,7 +33,7 @@
 		camera.setSource&&camera.setSource(player);
 		new iEntity().setModel(object).setRadius(1.5).rangedAttack=true;
 		object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
-		new iPhysics(object.entity);
+		new AIComponent(object.entity);
 		addUpdater(object.entity);
 		addTeamUnit(object.entity, 1, 1);
 		// ÃÌº”π÷ŒÔ

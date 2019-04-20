@@ -50,7 +50,7 @@
 		    	//object.position.set(200,0, 200)
 		    	scene.add( object );
 		    	new iEntity().setModel(object).setRadius(5);
-		    	//new iPhysics(object.entity);
+		    	//new AIComponent(object.entity);
 		    	//addUpdater(object.entity);
 		    	addTeamUnit(object.entity, 1, 1);
 		    //}

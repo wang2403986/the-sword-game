@@ -1,5 +1,4 @@
 (function(){
-var up=new THREE.Vector3(0,1,0);
 window.TopBoard=TopBoard;
 var spriteMap = new THREE.TextureLoader().load( "../assets/materials/TopBoard.png" );
 spriteMap.wrapS=THREE.ClampToEdgeWrapping; spriteMap.wrapT=THREE.ClampToEdgeWrapping;
