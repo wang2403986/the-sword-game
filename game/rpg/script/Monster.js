@@ -14,7 +14,7 @@
 				scale:.1//.16, r:2
 		};
 		loadModel(model, onLoaded);
-		loadModel(model, onLoaded0);
+		//loadModel(model, onLoaded0);
 		// model
 		var model2 = { name:'Monster2',
 				url:'../assets/models/hu.FBX',
@@ -29,7 +29,7 @@
 				selectionScale:4,
 				radius: 1 , scale:.05//
 		};
-		//loadModel(model2, onLoaded2);
+		loadModel(model2, onLoaded2);
 		//units position
 		var team1Positions=[{"x":279.3,"y":0,"z":224.5},{"x":279.5,"y":0,"z":232.5},{"x":279.2,"y":0,"z":240.2},{"x":279.3,"y":0,"z":248.6},{"x":287.4,"y":0,"z":224.5},{"x":287.3,"y":0,"z":232.5},{"x":287.2,"y":0,"z":240.2},{"x":287.4,"y":0,"z":248.4},{"x":295.4,"y":0,"z":224.5},{"x":295.5,"y":0,"z":232.4},{"x":295.2,"y":0,"z":240.6},{"x":295.4,"y":0,"z":248.4},{"x":303.5,"y":0,"z":224.4},{"x":303.4,"y":0,"z":232.5},{"x":303.4,"y":0,"z":240.4}];
 		//enemy units position
@@ -44,19 +44,21 @@
 				raycaster_models.push(bbox);
 		    	
 				addAnimationMixer( object );
+				object.actions.attack.timeScale=.8
+
 	    		object.playAction('free');
 	    		var j = i>=15?i%15:i;
 		    	object.position.copy(team1Positions[j])//rand(20,480),0, rand(20,480)
 		    	scene.add( object );
 		    	new MonsterEntity().setModel(object).setRadius(1.5);
-		    	object.entity.attackCooldownTime=1000*0.36666667461395264;
+		    	object.entity.attackHitTime=0.36666667461395264 -.08;
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		    	new AIComponent(object.entity);
 		    	addUpdater(object.entity);
 		    	addTeamUnit(object.entity, 1, 1);
 //		    	object.entity.audio=new THREE.PositionalAudio( audioListener );
 //		    	object.add(object.entity.audio);
-//		    	loadAudio( '../assets/audio/s1.mp3', (function(object){return function ( buffer ) {
+//		    	loadAudio( '../assets/audio/WoodMediumBashFlesh3.wav', (function(object){return function ( buffer ) {
 //					object.entity.audio.setBuffer( buffer );
 //					object.entity.audio.setRefDistance( 20 );
 //					object.entity.audio.setVolume( 2 );
@@ -73,19 +75,20 @@
 				raycaster_models.push(bbox);
 		    	
 				addAnimationMixer( object );
+				object.actions.attack.timeScale=.8
 	    		object.playAction('free');
 	    		var j = i>=15?i%15:i;
 		    	object.position.copy(team2Positions[j])//rand(20,480),0, rand(20,480)
 		    	scene.add( object );
 		    	new MonsterEntity().setModel(object).setRadius(1.5);
-		    	object.entity.attackCooldownTime=1000*0.36666667461395264;
+		    	object.entity.attackHitTime=0.36666667461395264 -.08;
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
 		    	new AIComponent(object.entity);
 		    	addUpdater(object.entity);
 		    	addTeamUnit(object.entity, 2, 2);
 //		    	object.entity.audio=new THREE.PositionalAudio( audioListener );
 //		    	object.add(object.entity.audio);
-//		    	loadAudio( '../assets/audio/s1.mp3', (function(object){return function ( buffer ) {
+//		    	loadAudio( '../assets/audio/WoodMediumBashFlesh3.wav', (function(object){return function ( buffer ) {
 //					object.entity.audio.setBuffer( buffer );
 //					object.entity.audio.setRefDistance( 20 );
 //					object.entity.audio.setVolume( 2 );
@@ -107,7 +110,7 @@
 	    		object.position.copy(team2Positions[j]);
 		    	scene.add( object );
 		    	new MonsterEntity().setModel(object).setRadius(2.5).speed=25;
-		    	object.entity.attackCooldownTime=1000*0.36666667461395264;
+		    	object.entity.attackHitTime=0.36666667461395264 -.08;
 		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model2.topBoard);
 		    	new AIComponent(object.entity);
 		    	addUpdater(object.entity);

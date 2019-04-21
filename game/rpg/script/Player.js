@@ -38,17 +38,18 @@
 		addTeamUnit(object.entity, 1, 1);
 		// ÃÌº”π÷ŒÔ
 		addMonster();
-		object.entity.attackCooldownTime=1000*1.7666664123535156;//0.36666667461395264
+		object.entity.attackHitTime=1.7666664123535156 - .88;//0.36666667461395264
+		//object.entity.attackCastTime=.89;
 		object.entity.rangedAttack=true;
 		object.entity.attackRange=15;
 		object.entity.maxHP= object.entity.HP=1000;
-		object.entity.audio=new THREE.PositionalAudio( audioListener );
-		loadAudio( '../assets/audio/s2.mp3', function ( buffer ) {
-			object.entity.audio.setBuffer( buffer );
-			object.entity.audio.setVolume( 2 );
-			object.entity.audio.setRefDistance( 20 );
-		} );
-    	object.add(object.entity.audio);
+//		object.entity.audio=new THREE.PositionalAudio( audioListener );
+//		loadAudio( '../assets/audio/EtherealMediumHit3.wav', function ( buffer ) {
+//			object.entity.audio.setBuffer( buffer );
+//			object.entity.audio.setVolume( 10 );
+//			object.entity.audio.setRefDistance( 20 );
+//		} );
+//    	object.add(object.entity.audio);
     	
     	var geometry = new THREE.PlaneBufferGeometry( 150, 150 );
     	var vertices = geometry.attributes.position.array;

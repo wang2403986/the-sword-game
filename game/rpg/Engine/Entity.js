@@ -10,7 +10,7 @@
 	iEntity.array1=[];
 	function iEntity() {
 		this.rangedAttack=false;
-		this.attackCooldownTime=650,this.attackCastTime=300,this.attackDamage=1;
+		this.attackHitTime=0.28,this.attackCastTime=0.89,this.attackDamage=1;
 		this.id = generateID();
 		this.maxHP=100;// max Health pointÂúÑªÉúÃüÖµ
 		this.HP=100;//Health point

@@ -99,8 +99,17 @@
 			if (aiComponent.findPathType === 2) {// auto find attack target
 				var arr=aiComponent.source.attackTargets, tmpPos=aiComponent.source.pos;
 				array2.length=0;
-				for(var i=0;i<arr.length;i++)
-					if(!arr[i].isDead)array2.push(arr[i]);
+				for(var i=0;i<arr.length;i++){
+					if(!arr[i].isDead){
+						var acquisitionRange=unit0.acquisitionRange +arr[i].range;
+						var distance=distanceToSquared(tmpPos, arr[i].pos);
+						if(distance<acquisitionRange*acquisitionRange){
+							array2.push(arr[i]);
+							arr[array2.length-1]=arr[i];
+						}
+					}
+				}
+				arr.length = array2.length;
 				arr = array2;
 				for(var i=0;i< arr.length;i++){
 					arr[i]._cmp=arr[i].pos.distanceToSquared(tmpPos);
