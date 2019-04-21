@@ -116,6 +116,10 @@
 			    	aiComponent.attackTarget = arr[f32Array[0]];
 			    	aiComponent.findPathPosition.copy(arr[f32Array[0]].pos);
 			    	aiComponent.isLockTarget=false;
+			    	
+			    	var chaseRange= aiComponent.source.acquisitionRange*(2*Math.random()+1.7);
+			    	aiComponent.source.chaseRange = chaseRange;
+			    	
 			    	aiComponent.attackStartPos.copy(aiComponent.source.pos);
 			    	buildPath(pathSize, i32, unit0)
 					aiComponent.isFullPath=true;

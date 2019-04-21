@@ -78,6 +78,8 @@
 	};
 	AIComponent.prototype.setAttackTarget=function(target){// TODO
 		this.attackToMode = 0;
+		this.stopSkill();
+		this.stopAttack();
 		var distance=distanceToSquared(this.source.pos, target.pos);
 		var attackRange = target.range+ this.source.attackRange;
 		if(distance<=attackRange*attackRange) {// do startAttack
@@ -93,6 +95,8 @@
 	};
 	AIComponent.prototype.setSkillTarget=function(skillTarget){
 		this.attackToMode = 0;
+		this.stopSkill();
+		this.stopAttack();
 		var distance=skillTarget.pos.distanceToSquared(this.source.pos);
 		var attackRange = skillTarget.range+ 10;
 		if(distance<=attackRange*attackRange){// do skill
@@ -117,17 +121,19 @@
 		console.log('startSkill')
 	}
 	AIComponent.prototype.stopSkill=function() {
-		this.skillStartTime = 0;
+		if (!this.skillTarget) return;
 		console.log('stopSkill');
+		this.skillStartTime = 0;
 		this.skillTarget=null;
+		this.autoMove = false;//stop move state
 		this.setState(PS_FREE);
 	}
 	AIComponent.prototype.stopChase=function() {
 		console.log('stopChase');
-		this.autoMove = false;//stop move state
-		this.setState(PS_FREE);
 		this.attackTarget=null;
 		this.isLockTarget=false;
+		this.autoMove = false;//stop move state
+		this.setState(PS_FREE);
 	}
 	AIComponent.prototype.startAttack=function() {
 		console.log('startAttack')
@@ -142,13 +148,13 @@
 	}
 	AIComponent.prototype.stopAttack=function() {
 		if(!this.attackTarget) return;
-		this.autoMove = false;//stop move state
-		this.setState(PS_FREE);
 		console.log('stopAttack')
 		var aiComponent=this.attackTarget.aiComponent;
 		if(aiComponent && aiComponent.attacker===this.source) aiComponent.attacker=false;
 		this.attackTarget=null;
 		this.isLockTarget=false;
+		this.autoMove = false;//stop move state
+		this.setState(PS_FREE);
 	}
 	AIComponent.prototype.stopMoveState=function() {
 		this.autoMove=false;
@@ -207,17 +213,17 @@
 	
 	AIComponent.prototype.updateMoveState = function() {
 		var source=this.source;
-		var skillTarget=this.skillTarget, aTarget=this.attackTarget, auto = !this.isLockTarget;
-		if (skillTarget) { // have casted a skill
-			var distance=skillTarget.pos.distanceToSquared(source.pos);
-			var attackRange = skillTarget.range+ 10;
+		var target= this.skillTarget || this.attackTarget, auto = !this.isLockTarget;
+		if (this.skillTarget) { // have casted a skill
+			var distance=target.pos.distanceToSquared(source.pos);
+			var attackRange = target.range+ 10;
 			if(distance<=attackRange*attackRange){// target is inside spell range, do skill
 				this.startSkill()
 			}
 		} else if(this.attackTarget) {
-			var distance=distanceToSquared(source.pos,aTarget.pos);
-			var acquisitionRange = aTarget.range+ source.acquisitionRange;
-			var attackRange = aTarget.range+ source.attackRange;
+			var distance=distanceToSquared(source.pos,target.pos);
+			var acquisitionRange = target.range+ source.acquisitionRange;
+			var attackRange = target.range+ source.attackRange;
 			if(auto&&distance>acquisitionRange*acquisitionRange){
 				// target is outside acquisition range, stop Chase
 				this.stopChase();
@@ -225,17 +231,15 @@
 			}else if(distance<=attackRange*attackRange){
 				// target is inside attack range, do attack
 				this.startAttack()
-			}else if(auto&&source.pos.distanceToSquared(this.attackStartPos)>source.chaseRange*source.chaseRange){
+			}else if(auto&&source.pos.distanceToSquared(this.stopPosition)>source.chaseRange*source.chaseRange){
 				// target is outside max chase range, stop chasing
-				this.stopChase();
-				if(!this.attackStartPos.equals(this.stopPosition)){ // second times of Chase
-					this.findPath(this.destPosition);
-				}
-			}else if(aTarget.isDead){
+				this.stopChase(); //this.attackStartPos.equals
+				this.findPath(this.destPosition);
+			}else if(target.isDead){
 				// target is Dead, stop chasing
 				this.stopChase();
 			}else if(!this.findPathInProgress){
-				var findPos=this.findPathPosition, pos = aTarget.pos; findPos.x=pos.x, findPos.z=pos.z;
+				var findPos=this.findPathPosition, pos = target.pos; findPos.x=pos.x, findPos.z=pos.z;
 			}
 		} else if(this.attackToMode){
 			if(!(this.findPathInProgress&&this.findPathType===autoAttackFindPathType)&&source.attackTargets.length)
@@ -264,16 +268,16 @@
 	};
 	AIComponent.prototype.findPath=function(/*D3DXVECTOR3*/ dest, type) {
 		this.findPathDiscarded = false;
-		if(dest)
-			this.findPathPosition.copy(dest);
+		this.findPathType=type;
+		if(dest) this.findPathPosition.copy(dest);
 		if(type===playerFindPathType) {
 			this.destPosition.copy(dest),
 			this.stopPosition.copy(dest);
-			if(this.state===PS_ATTACK) this.stopAttack();
-			this.attackTarget=this.isLockTarget=false;
-			this.skillTarget=false;
+			
+			this.attackToMode = 0;
+			this.stopSkill();
+			this.stopAttack();
 		}
-		this.findPathType=type;
 		if (!this.findPathInProgress) {
 			this.findPathInProgress=true
 			iPathFinder.findPath(this.source, dest);
@@ -529,8 +533,6 @@
 
 	AIComponent.prototype.finishAutoMove= function (noPathFound) {
 		if (noPathFound){
-//			if (this.findPathType===playerFindPathType)
-//				this.stopPosition.copy(this.source.pos);
 			if (this.findPathType===autoFindPathType){
 				return;
 			}
