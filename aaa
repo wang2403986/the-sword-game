@@ -1,3 +1,22 @@
+flatPos = transform.position;
+        var trajectorySpeed = 1.0;
+        flatPos.add( tmp1.copy(zVector).multiplyScalar(trajectorySpeed) );
+        targetVector.copy( target).sub( startPos );
+      	currentVector .copy( flatPos).sub( startPos);
+				var relative = currentVector.length() / targetVector.length();
+				
+				var scaledT =  2.0 * (relative - 0.5);  var trajectoryScale = .1;
+				var paraboleY = (1.0 - scaledT * scaledT) * trajectoryScale;
+
+				var pos = flatPos;
+				pos.y += paraboleY;
+
+        var testAngle = -angle + angleSpeed * time;
+        direction.copy(pos ).sub( lastPos);
+        transform.lookAt(direction.add(transform.position));
+	
+
+
 var inc=.7;
 	if (event.clientX < 20){
 		mouse.clientX=-inc;
