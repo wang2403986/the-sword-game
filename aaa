@@ -1,0 +1,22 @@
+var inc=.7;
+	if (event.clientX < 20){
+		mouse.clientX=-inc;
+	}else if (event.clientX>innerWidth-20){
+		mouse.clientX=inc;
+	} else if (event.clientY<15){
+		mouse.clientY=-inc;
+	}else if (event.clientY>innerHeight-20){
+		mouse.clientY=inc;
+	}
+  var v0 =new THREE.Vector2( 155,  321),
+		v1 =new THREE.Vector2(310,  321),
+
+		v2=new THREE.Vector2(113 , 633),
+		v3=new THREE.Vector2(401,633);
+    
+    clientX=event.offsetX *(worldSize.x/size);
+			clientY=event.offsetY*(worldSize.y/size);
+			clientX += v0.x;
+			clientY += v0.y;
+			clientX = clientX-camera.position.x ;
+			clientY= clientY-camera.position.z ;
