@@ -2,94 +2,15 @@
 <html style="margin:0;">
 <head>
 <meta charset="UTF-8">
-<title>War craft web remake</title>
+<title>Sword Kingdom</title>
 <!-- <link href="../index.css" rel="stylesheet"> -->
-<script type="x-shader/x-vertex" id="ParticleSystem-fragmentShader">
-      uniform vec3 color;
-      uniform vec3 endColor;
-      uniform float opacity;
-      uniform sampler2D texture;
-
-      varying float vTime;varying vec2 vUv;
-      
-      void main() {
-        vec4 texColor = texture2D(texture, vUv);
-        vec4 startColor = vec4(color, opacity);
-        vec4 endColor = vec4(endColor, 0.0);
-        gl_FragColor = texColor * mix(startColor, endColor, vTime);
-      }
-</script>
-<script type="x-shader/x-vertex" id="ParticleSystem-vertexShader">
-      uniform float elapsedTime;
-      uniform float numParticles;
-      uniform float gravity;
-      uniform vec3 up;
-      
-      uniform float sparkLifecycle;
-      uniform float sparkDistanceScale;
-      uniform float sparkStartSize;
-      uniform float sparkEndSize;
-      
-      uniform float flameMaxHeight;
-      uniform float flameMinHeight;
-      uniform float flamePeriod;
-      uniform float windStrength;
-      uniform float windFrequency;
-
-	  attribute vec3 positionO;
-      attribute vec3 direction;
-      attribute float uniqueness;
-      attribute float particleIndex;
-
-      #define PI 3.141592653589793238462643383279
-
-      varying float vTime;varying vec2 vUv;
-
-      void main( void ) {
-        // unique duration
-        float duration = sparkLifecycle + sparkLifecycle * uniqueness;
-
-        // make time loop
-        float particleOffset = (particleIndex / numParticles * duration);
-        float time = mod(elapsedTime + particleOffset, duration);
-
-        // store time as 0-1 for fragment shader
-        vTime = time / duration;
-
-        // apply "gravity" to fire
-        vec3 vGravity = up * gravity * pow(vTime, 2.0);
-
-        // move in direction based on elapsed time
-        float flameHeight = mix(flameMinHeight, flameMaxHeight, uniqueness); 
-        vec3 vDistance = flameHeight * direction * vTime;
-
-        // close flame at top (0.5 is fully closed)
-        vDistance.xz *= cos(mix(0.0, PI * flamePeriod, vTime));
-
-        // apply some random horizonal wind
-        vec3 vWind = sin((elapsedTime + vTime * uniqueness) * windFrequency * uniqueness) * cross(up, direction) * windStrength * uniqueness * vTime;
-
-        // add all forces to get final position for this frame
-        vec3 pos = position + vDistance + vGravity + vWind;
-	    pos*=mix(.1, 7., vTime);
-
-        // Set size based on frame and distance
-        vec4 mvPosition = modelViewMatrix * vec4( pos, 1.0 );
-        //gl_PointSize = mix(sparkStartSize, sparkEndSize, vTime);
-		//		  gl_PointSize = gl_PointSize * (sparkDistanceScale / length(mvPosition.xyz));
-        
-        // project position on screen
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-	    vUv=uv;
-      }
-</script>
 <style type="text/css">
 </style>
 </head>
 <body style="margin:0;">
 <img src="../assets/pic/cursor.ico" style="width:0;position:absolute;"></img>
 <img src="../assets/pic/hero1.gif" style="position:absolute;left:10px;top: 80px;"
-onclick="selectEntity(0);"></img>
+ondblclick="window.moveCamera(player.position.x, player.position.z);"></img>
 <div style="position: absolute;
     left: 330px;
     bottom: 74px;">
@@ -119,12 +40,12 @@ onclick="selectEntity(0);"></img>
 <script src="../../js/three.js" type="text/javascript"></script>
 <script src="../../js/loaders/FBXLoader.js" type="text/javascript"></script>
 <script src="../../js/stats.min.js" type="text/javascript"></script>
-<script src="../../js/TrackballControls.js" type="text/javascript"></script>
 <script src="../../js/OrbitControls.js" type="text/javascript"></script>
 <script src="../../js/inflate.min.js" type="text/javascript"></script>
 <script src="../../js/simplex.noise.js" type="text/javascript"></script>
 
 <script src="Utils.js" type="text/javascript"></script>
+<script src="PointerLockControls.js" type="text/javascript"></script>
 <script src="index.js" type="text/javascript"></script>
 <script src="Engine/TerrinMap.js" type="text/javascript"></script>
 <script src="Engine/PathFinder.js" type="text/javascript"></script>

@@ -66,7 +66,7 @@
 	    	this.updateAttackState();
 	    else if(this.autoMove)
 	    	this.updateMoveState();
-	    else if(this.state===PS_FREE||this.state===PS_MOVE)
+	    else if(this.state===PS_FREE)
 	    	this.updateFreeState();
 	    else if(this.state===PS_SKILL)
 	    	this.updateSkillState();
@@ -143,7 +143,7 @@
 		this.setState(PS_ATTACK);
 		this.lastActionTime = 0;
 		this.isHit=false;
-		this.projectile=false;
+		this.fired=false;
 		var aiComponent=this.attackTarget.aiComponent;
 		if(aiComponent&& !aiComponent.attacker) aiComponent.attacker=this.source;
 	}
@@ -180,7 +180,7 @@
 	    this.faceToDir(faceDir);
 		
 	    var time=source.model.mixer.currentAction.time;
-	    if (!this.isHit&& (time >= source.attackHitTime || this.lastActionTime>time)) {
+	    if (!source.rangedAttack && !this.isHit&& (time >= source.attackHitTime || this.lastActionTime>time)) {
 			if(source.audio) {
 				if(source.audio.isPlaying) source.audio.stop();
 				source.audio.play();
@@ -190,7 +190,7 @@
 	    }
 	    if (this.lastActionTime>time) { // at each animation finished
 	    	this.isHit = false;
-	    	this.projectile=false;
+	    	this.fired=false;
 	    	var chaseDistance=source.pos.distanceToSquared(this.stopPosition);
 			var distance=distanceToSquared(source.pos, attackTarget.pos);
 			var chaseRange = attackTarget.range+ source.chaseRange;
@@ -210,8 +210,8 @@
 				this.stopAttack();
 			}
 	    }
-	    if(source.rangedAttack&& !this.projectile&& time >=source.attackCastTime){
-			this.projectile=true;
+	    if(source.rangedAttack&& !this.fired&& time >=source.attackCastTime){
+			this.fired=true;
 			new Projectile(source, attackTarget);
 		}
 		
@@ -374,7 +374,7 @@
 			if(Math.abs(path[endIndex-1]-this.stopPosition.x)<=32 &&
 					Math.abs(path[endIndex]-this.stopPosition.z)<=32)
 				return;
-			console.log('autoFindPathType!!');
+			console.log('autoFindPathType stopAttack!');
 			this.stopAttack();
 		}
 		if(findPathType===autoFindPathType)
@@ -409,7 +409,7 @@
 //			if(moveX!==undefined) this.moveToPosition.set(moveX,0,moveY);
 //		}
 	    this.oldPosition.copy(this.source.pos);
-	    iDebugData.push(this.moveToPosition.clone());// TODO
+//	    iDebugData.push(this.moveToPosition.clone());// TODO
 
 	    var dx = this.moveToPosition.x-this.oldPosition.x;
 	    var dy = this.moveToPosition.z-this.oldPosition.z;

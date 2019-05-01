@@ -1,6 +1,26 @@
 (function (){
-	
 	var loader2 = new THREE.JSONLoader();
+	loader2.load("../assets/models/select.json", function(geometry,matls){
+		matls[0].skinning= matls[0].transparent=true;
+		//matls[0].color.setRGB(34/256,177/256,76/256);
+		var mesh = new THREE.SkinnedMesh(geometry, matls[0] );
+
+		//mesh.scale.set(.06,.06,.06);
+		mesh.rotateX(-Math.PI/2);
+		scene.add( mesh );
+        //geometry.animations[0].resetDuration()
+        var mixer = new THREE.AnimationMixer( mesh );
+        var action=mixer.clipAction(geometry.animations[0] );
+        //action.clampWhenFinished = true;
+		//action.loop = THREE.LoopOnce;
+		action.reset().play();
+		//window.cursorEntity=mesh;
+//		window.showClickEffects=function(){
+//			action.reset();
+//			action.play();
+//		};
+        mixers.push(mixer);
+    });
 	window.showClickEffects=function(){};
 	loader2.load("../assets/models/RallyArrow2.json", function(geometry,matls){
 		matls[0].skinning= matls[0].transparent=true;matls[0].color.setRGB(34/256,177/256,76/256);
@@ -88,7 +108,7 @@
 		if(!isDraged &&Math.abs(touchStartX-event.clientX)>4||Math.abs(touchStartY-event.clientY)>4){
 			isDraged= true;
 		}
-		if(selectionStart&&isDraged) {
+		if(selectionStart && isDraged) {
 			selectionRect.visible=true;
 			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 			mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
@@ -118,7 +138,7 @@
 		if(event.keyCode == 49) {
 			castSkill();
 		}else if(event.keyCode == 17){
-			controls.enableRotate=true
+			//controls.enableRotate=true //TODO
 		}
 	}, false);
 	document.addEventListener('keyup', function(event){
@@ -128,7 +148,9 @@
 			controls.enableRotate=false
 		}
 	}, false);
-	var selection=null; var vec1= new THREE.Vector3(); var skillTargetMode=false;
+	var selection=null;
+	var vec1= new THREE.Vector3();
+	var skillTargetMode=false;
 	function mouseupMsg(event) {
 		if(selectionStart) scene.remove(selectionRect);
 		selectionStart=false;
@@ -189,13 +211,13 @@
 					left=-(r>>0)+1;
 					rigt=(r>>0);
 				}
-				var c=0; maxRadius=4*maxRadius;
+				var c=0; maxRadius=4*maxRadius * 1.42;
 				for (var i=left;i<=rigt;i++)
 					for (var j=left;j<=rigt;j++) {
 						if(c>=size) break;
 						if(selections[c].aiComponent){
-							var aiComponent=selections[c].aiComponent;
-							aiComponent.findPath(vec1.set(centerX+maxRadius*i,0,centerY+maxRadius*j),0);
+							var px=centerX+maxRadius*i,  py=centerY+maxRadius*j;
+							selections[c].aiComponent.findPath(vec1.set(px,0,py),0);
 						}
 						c++;
 					}
@@ -204,7 +226,7 @@
 	    }else if(event.button == 0){
 	        'left';
 	    }
-		if(camera.isDraged&&camera.isDraged())
+		if(camera.isDraged && camera.isDraged())
 			return 1;
 		if(!skillTargetMode && isDraged) return ;
 		var intersects=raycaster.intersectBoxs( raycaster_models ), skillTarget;

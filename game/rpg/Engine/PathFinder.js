@@ -40,27 +40,28 @@
 	        }
 	        return true;
 	    }
-		this.getCollisionObject = function(unit0, preferMovingUnit) {
+		this.getCollisionObject = function(unit, preferMovingUnit) {
 			var scale=scaleFactor;
-			unit0.nextPos=unit0.aiComponent.nextPos;
-			var x0= (unit0.pos.x*scale)>>0;
-			var y0= (unit0.pos.z*scale)>>0;
-			var x1= (unit0.nextPos.x*scale)>>0;
-			var y1= (unit0.nextPos.z*scale)>>0;
-			var r0=unit0.radius, collision, result;
+			unit.nextPos = unit.aiComponent.nextPos;
+			var x0= (unit.pos.x*scale)>>0;
+			var y0= (unit.pos.z*scale)>>0;
+			var x1= (unit.nextPos.x*scale)>>0;
+			var y1= (unit.nextPos.z*scale)>>0;
+			var r0=unit.radius, collision, result;
 			x1 = x1- (r0>>0), y1 = y1-(r0>>0);
 			var aiComponent,g_gameUnits=window.g_gameUnits;
 			for (var j=0; j<g_gameUnits.length;j++) {
-				var unit = g_gameUnits[j];
-				if(unit === unit0) continue;
-				var radius=unit.radius;
-				var centerX=(unit.pos.x)>>0, centerY=(unit.pos.z)>>0,
+				var b = g_gameUnits[j];
+				if(b === unit) continue;
+				var radius=b.radius;
+				var centerX=(b.pos.x)>>0, centerY=(b.pos.z)>>0,
 				  startX = centerX- (radius>>0), startY = centerY-(radius>>0);
 				collision =isCollisionWithRect(x1,  y1,  2*r0, 2*r0,  startX, startY, 2*radius,  2*radius);
 				if (collision) {
-					result = unit; aiComponent=unit.aiComponent;
+					result = b;
+					aiComponent=b.aiComponent;
 					if(!preferMovingUnit || (aiComponent&&aiComponent.autoMove && !aiComponent.isWaiting))
-						return unit;
+						return b;
 				}
 			}
 			return result;
@@ -96,6 +97,8 @@
 			aiComponent.needsFindPath=false;
 			aiComponent.findPathState=1;
 			aiComponent.collisionCount=0;
+			
+			if(aiComponent.findPathDiscarded) return;
 			if (aiComponent.findPathType === 2) {// auto find attack target
 				var arr=aiComponent.source.attackTargets, tmpPos=aiComponent.source.pos;
 				array2.length=0;
@@ -121,7 +124,6 @@
 				}
 				var pathSize = app.findPathAttack(unitsNumber, unit0.radius, m_startX, m_startY, arr.length,unit0.attackRange);
 				if (pathSize >= 0) {
-			    	if(aiComponent.findPathDiscarded) return;
 			    	aiComponent.attackTarget = arr[f32Array[0]];
 			    	aiComponent.findPathPosition.copy(arr[f32Array[0]].pos);
 			    	aiComponent.isLockTarget=false;
@@ -133,7 +135,6 @@
 			    	buildPath(pathSize, i32, unit0)
 					aiComponent.isFullPath=true;
 					if(aiComponent.path.length>2){
-						smoothPath(aiComponent);
 						aiComponent.moveForward( aiComponent.findPathType,1);
 					}
 			    }
@@ -148,7 +149,6 @@
 					aiComponent.autoFindPathTime = now + 1500;
 				} else if (pathSize > 2) {
 			    	aiComponent.autoFindPathTime = now + 10000;
-			    	if(aiComponent.findPathDiscarded) return;
 			    	buildPath(pathSize, i32, unit0)
 //				    console.log(aiComponent.path)
 				    var distance = unit0.radius*2;
@@ -157,10 +157,9 @@
 					var toX = endX-left, toY =endY-top;
 					aiComponent.isFullPath=!(toX<0||toY<0||toX>=MAP_SIZE||toY>=MAP_SIZE);
 				    //aiComponent.isFullPath = Math.abs(endX-i32[pathSize-1])<=distance &&Math.abs(endY-i32[pathSize])<=distance;
-					if(!window.iDebugData)window.iDebugData=[];
-					iDebugData.length=0;
-					iDebugData.push(unit0.pos.clone());
-					smoothPath(aiComponent);
+//					if(!window.iDebugData)window.iDebugData=[];
+//					iDebugData.length=0;
+//					iDebugData.push(unit0.pos.clone());
 				    aiComponent.moveForward( aiComponent.findPathType,1);
 			    }
 			}
@@ -171,7 +170,7 @@
 		function selectSort(arr){
 		    var len=arr.length;
 		    var minIndex,temp,		count=Math.min(len-1, 16);
-		    for(i=0;i<count;i++){//for(i=0;i<len-1;i++){
+		    for(i=0;i<count;i++){
 		        minIndex=i;
 		        for(j=i+1;j<len;j++){
 		            if(arr[j]._cmp<arr[minIndex]._cmp){
@@ -193,66 +192,6 @@
 			for(var i=2;i<pathSize;i++) {
 		    	path.push((i32[i]+.5) );
 		    }
-		}
-		function smoothPath(aiComponent){
-//			if(!aiComponent.arr2)aiComponent.arr2=[];
-//			aiComponent.arr2.length=0;
-//			var arr2=aiComponent.arr2;
-//			var path = aiComponent.path;
-//			var length = path.length;
-//			var i=0, j=0;
-//			arr2.push(path[0]); arr2.push(path[1]);
-//			for (j=2; j<length;j+=2){
-//				if(arr2[arr2.length-2]===path[j]&&arr2[arr2.length-1]===path[j+1]) continue;
-//				arr2.push(path[j]); arr2.push(path[j+1]);
-//				i=j-2;
-//				var moveX, moveY, nextX, nextY;
-//				moveX=undefined;
-//				if(j+3< length&& 1){
-//					if((path[i]>>0)===(path[i+2]>>0) &&path[j+1]===path[j+3]){
-//						if(path[i+3]-path[i+1]>=1){
-//						    moveY = (path[j+1]>>0) -0.4375;
-//						    moveX = path[j];
-//						    nextY = path[j+1];
-//						    nextX =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-//						    arr2[arr2.length-2]=moveX;
-//						    arr2[arr2.length-1]=moveY;
-//						    arr2.push(nextX);
-//						    arr2.push(nextY);
-//						}else if(path[i+1]-path[i+3]>=1){
-//							moveY = (path[j+1]>>0)+1 +0.4375;
-//							moveX = path[j];
-//							nextY = path[j+1];
-//							nextX =(path[j]<path[j+2])? path[j]+1  :   path[j]-1;
-//							arr2[arr2.length-2]=moveX;
-//						    arr2[arr2.length-1]=moveY;
-//						    arr2.push(nextX);
-//						    arr2.push(nextY);
-//			            }
-//					}else if(path[i+1]>>0===path[i+3]>>0 &&path[j]===path[j+2]){
-//						if(path[i+2]-path[i]>=1){
-//							moveX = (path[j]>>0) -0.4375;
-//							moveY = path[j+1];
-//							nextX = path[j];
-//							nextY =(path[j+1]<path[j+3])? (path[j+1]+1)  :   (path[j+1]-1);
-//							arr2[arr2.length-2]=moveX;
-//						    arr2[arr2.length-1]=moveY;
-//						    arr2.push(nextX);
-//						    arr2.push(nextY);
-//						}else if(path[i]-path[i+2]>=1){
-//				            moveX = (path[j]>>0)+1 +0.4375;
-//				            moveY = path[j+1];
-//				            nextX = path[j];
-//				            nextY =(path[j+1]<path[j+3])? path[j+1]+1  :   path[j+1]-1;
-//				            arr2[arr2.length-2]=moveX;
-//						    arr2[arr2.length-1]=moveY;
-//						    arr2.push(nextX);
-//						    arr2.push(nextY);
-//				        }
-//					}
-//				}
-//			}
-//			aiComponent.path=arr2; aiComponent.arr2=path;
 		}
 	}
 })()

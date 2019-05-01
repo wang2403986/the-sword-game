@@ -1,4 +1,9 @@
 (function(){
+	
+	
+	
+	
+	
 	var objectsPool =[];
 	var particle=THREE.ImageUtils.loadTexture('textures/particle2.png');
 //Bullet.material=new THREE.SpriteMaterial( {map: sprite, transparant:true } );
@@ -24,47 +29,57 @@
 	window.Projectile=Projectile;
 function Projectile(source, attackTarget, m_speed, gravity) {
 	var position=source,target=attackTarget;
-	if(position.x===undefined)position=source.pos,target=attackTarget.pos;
-	var transform, g = 9.8*10, speed = 200, verticalSpeed, moveDirection, angleSpeed, angle, totalTime,time=0;
-	speed=40;
-	var m_vLook= new THREE.Vector3();
+	if(position.x===undefined)
+		position=source.pos,target=attackTarget.pos;
+	var transform,totalTime,time=0,verticalSpeed, g = 9.8*5, speed = 20, angleSpeed, angle;
+	
+	var direction= new THREE.Vector3();
+	var tmp1= new THREE.Vector3();
+	var startPos= new THREE.Vector3().copy(position);
+	var endPos= new THREE.Vector3().copy(target); 
+	startPos.y=endPos.y=6;
+	var lastPos= new THREE.Vector3().copy(startPos);
+	
     this.start =function() {
-    	if(m_speed) speed=m_speed;  if(gravity) g=gravity;
+//    	if(m_speed) speed=m_speed;  if(gravity) g=gravity;
     	//transform = new THREE.Sprite( Bullet.material ); transform.scale.set(100,100,1);
     	if(objectsPool.length){
     		transform = objectsPool.pop();
     	} else {
     		transform = new Fire();//new THREE.Points(geometry, Bullet.material );
     		transform.init()
+//    		var geometry = new THREE.BoxBufferGeometry(2, 2, 10);
+//    	    var material = new THREE.MeshBasicMaterial({
+//    	        color: 0x00ff7c
+//    	    });
+//    		transform = {system:new THREE.Mesh(geometry, material),update:function(){}};
     	}
     	transform.position = transform.system.position;
     	transform.rotation = transform.system.rotation;
     	transform.lookAt = function(e){transform.system.lookAt(e)};
-    	transform.position.copy(position).y=5;
-    	m_vLook.copy(target).y=5; target=m_vLook;
+    	transform.position.copy(startPos)
     	scene.add( transform.system );
-    	var tmepDistance = transform.position.distanceTo (target);
-    	var tempTime = tmepDistance / speed; totalTime=tempTime;
+    	var tmepDistance = startPos.distanceTo(endPos);
+    	var tempTime = tmepDistance / speed;
         var riseTime, downTime;
         riseTime = downTime = tempTime / 2;
          verticalSpeed = g * riseTime;
-        transform.lookAt(target);
-        //transform.rotation.x =-Math.PI/2;
- 
+        transform.lookAt(endPos);
         var tempTan = verticalSpeed / speed;
         var hu = Math.atan(tempTan);
-        angle = (180 / Math.PI * hu);
-//        transform.rotation.x =hu;// -angle ;
+        angle =  (180 / 180 * hu);
+        transform.system.rotateX ( -angle);
         angleSpeed = angle / riseTime;
  
-        moveDirection = new THREE.Vector3().subVectors(target , transform.position).normalize();
+        direction .copy(endPos) .sub( transform.position).normalize();
         addUpdater(this);
     }
     this.start();
-    this.update=function (deltaTime)
+    this.update= update;
+    function update(deltaTime)
     {
     	transform.update(deltaTime, (time+deltaTime))
-    	if (totalTime <= time) {
+    	if (transform.position.y < endPos.y) {
     		if(attackTarget.onHit){
     			attackTarget.onHit(source);
     		}
@@ -72,13 +87,14 @@ function Projectile(source, attackTarget, m_speed, gravity) {
     		objectsPool.push(transform);
     		return;
     	}
-        time += deltaTime;
+    	time += deltaTime;
+    	lastPos.copy(transform.position);
         var test = verticalSpeed - g * time;
-        transform.position.add(m_vLook.copy(moveDirection).multiplyScalar(speed * deltaTime));
-        //transform.position.y=5;
-       transform.position.y += test * deltaTime;
+        transform.position.add(tmp1.copy(direction).multiplyScalar( speed * deltaTime));
+        transform.position.y+=  test * deltaTime;
         var testAngle = -angle + angleSpeed * time;
-        //transform.rotation.y = testAngle*Math.PI/180 ;
+       // transform.rotation.x = testAngle;
+        transform.system.rotateX ( angleSpeed * deltaTime);
     }
 }
 window.Fire=Fire;

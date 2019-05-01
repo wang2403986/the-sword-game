@@ -2,6 +2,7 @@ var container, stats, controls, terrin;
 var raycaster = new THREE.Raycaster();
 var raycaster_models=[];
 var mouse = new THREE.Vector2(), INTERSECTED;
+mouse.moveX=mouse.moveY=0;
 var camera, scene, renderer, light;
 var keyboard = new KeyboardState();
 var mixers = [], worldSize = {x:512,y:512};
@@ -11,25 +12,21 @@ animate();
 function init() {
 	container = document.createElement( 'div' );
 	document.body.appendChild( container );
-	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-	camera.position.set( 314, 65, 290 );
-	camera.position.set(304.3, 66.0, 295.4);
-	controls = new THREE.OrbitControls( camera );
-	controls.target.set( 179,  -213,  102 );
-	controls.enableRotate=false;controls.update();
 	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+	camera.position.set(259, 47, 290);
+	controls = new THREE.OrbitControls( camera );
+	controls.target.copy( controls.target0.set( 259, -15, 221 ) );
+	controls.screenSpacePanning = controls.enableRotate = false;
+	controls.update();
+//	controls = new THREE.PointerLockControls( camera );
+//	scene.add(controls.getObject());
 	//scene.background = new THREE.Color( 0xa0a0a0 );
 	//scene.fog = new THREE.Fog( 0xa0a0a0, 200, 1000 );
-	light = new THREE.AmbientLight(0xffffff); light.intensity = .9;
-	scene.add(light);
+	var ambientlight = new THREE.AmbientLight(0xffffff); ambientlight.intensity = .9;
+	scene.add(ambientlight);
 	light = new THREE.DirectionalLight( 0xffffff );
 	light.castShadow = true;
-	
-//	light.position.set(-40, 60, -10)//-40, 60, -10;390, 260, 210
-//	light.shadow.camera.top = 350;
-//	light.shadow.camera.bottom = 150;
-//	light.shadow.camera.left = 100;
-//	light.shadow.camera.right = 300;
 	
 	light.position.set(390, 260, 210)
 	light.shadow.camera.top = -100;//       350,-100
@@ -40,6 +37,7 @@ function init() {
 	light.shadow.mapSize.height = 2048;
 	light.shadow.mapSize.width = 2048;
 	scene.add( light );
+	scene.add(light.target);
 	scene.add(new THREE.DirectionalLightHelper(light));
 	scene.add( new THREE.CameraHelper( light.shadow.camera ) );
 	// ground
@@ -48,15 +46,14 @@ function init() {
 	var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(worldSize.x, worldSize.y), new THREE.MeshLambertMaterial( { color: 0x666666,map:texture, depthWrite: true } ) );
 	mesh.geometry.rotateX( - Math.PI / 2 );
 	mesh.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
-//	mesh.rotation.x = - Math.PI / 2; mesh.position.set(worldSize.x/2,0, worldSize.y/2);
 	mesh.receiveShadow = true;
 	terrin = mesh;
 	scene.add( mesh );
 	
-	var grid = new THREE.GridHelper( worldSize.x, worldSize.x, 0x000000, 0x000000 );
-	grid.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
-	grid.material.opacity = 0.5;
-	grid.material.transparent = true;
+//	var grid = new THREE.GridHelper( worldSize.x, worldSize.x, 0x000000, 0x000000 );
+//	grid.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
+//	grid.material.opacity = 0.5;
+//	grid.material.transparent = true;
 	//scene.add( grid );
 
 	renderer = new THREE.WebGLRenderer( { antialias: false } );
@@ -87,34 +84,44 @@ function animate() {
 		updateTaskList[i].update(fElapse);
 	}
 	if(camera) {
-//		raycaster.setFromCamera(mouse, camera);
-//		var intersects = raycaster.intersectBoxs( raycaster_models );
-//		if(intersects.length > 0 ) {
-//			if ( INTERSECTED != intersects[ 0 ].object ) {
-//				if ( INTERSECTED ) INTERSECTED._model.meshs[0].material.color.setHex( INTERSECTED.currentHex );//emissive
-//				INTERSECTED = intersects[ 0 ].object;
-//				var material=INTERSECTED._model.meshs[0].material;
-//				INTERSECTED.currentHex = material.color.getHex();
-//				material.color.setHex( 0xffcccc );
-//			}
-//		} else {
-//			if ( INTERSECTED ) INTERSECTED._model.meshs[0].material.color.setHex( INTERSECTED.currentHex );
-//			INTERSECTED = null;
-//		}
-	}
-	if(camera) {
-		camera.update&&camera.update();
+		camera.update && camera.update();
 		renderer.render( scene, camera );
+		var moveX=mouse.moveX, moveY=mouse.moveY;
+		camera.position.x+=moveX;
+		camera.position.z+=moveY;
+		controls.target.x+=moveX;
+		controls.target.z+=moveY;
+		
+		light.position.x+=moveX;
+		light.position.z+=moveY;
+		light.target.position.x+=moveX;
+		light.target.position.z+=moveY;
 	}
 	stats.update();
 }
 
-window.addEventListener( 'mousemove', function ( event ) {
+document.addEventListener( 'mousemove', function ( event ) {
 	// calculate mouse position in normalized device coordinates
 	// (-1 to +1) for both components
+	mouse.moveX=0;
+	mouse.moveY=0;
 	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-}, false );
+	
+	var inc=.7;
+	if (event.clientX < 20){
+		mouse.moveX=-inc;
+	}else if (event.clientX>innerWidth-20){
+		mouse.moveX=inc;
+	} else if (event.clientY<20){
+		mouse.moveY=-inc;
+	}else if (event.clientY>innerHeight-20){
+		mouse.moveY=inc;
+	}
+});
+document.addEventListener( 'mouseleave', function ( event ) {
+	mouse.moveX= mouse.moveY=0;
+});
 
 (function(){
 //	var gui = new dat.GUI();

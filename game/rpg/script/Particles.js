@@ -248,6 +248,7 @@
 
 	};
 
+	var array1= new Float64Array(4);
 	ParticleEmitter.prototype.createParticles_ = function( firstParticleIndex, numParticles, parameters, opt_perParticleParamSetter ) {
 
 	    var interleaveBufferData = this.interleavedBuffer.array;
@@ -263,21 +264,27 @@
 	    };
 
 	    // TODO: change to not allocate.
-	    var array1= new Array(4);
+	    var v4= new THREE.Vector4();
+	    var v3= new THREE.Vector3();
 	    var plusMinusVector = function ( range ) {
+	    	
+	        var v = array1, length = range.length;
 
-	        var v = array1;
-
-	        for (var ii = 0; ii < range.length; ++ ii) {
+	        for (var ii = 0; ii < length; ++ ii) {
 
 	            v[ii]=plusMinus( range[ ii ] );
 
 	        }
 
-	        return v;
+	        return length===3? v3.fromArray(v):v4.fromArray(v);
 
 	    };
 
+	    var pPosition=new THREE.Vector3();
+	    var pVelocity=new THREE.Vector3();
+	    var pAcceleration=new THREE.Vector3();
+	    var pColorMult=new THREE.Vector4();
+	    var pOrientation=new THREE.Vector4();
 	    for ( var ii = 0; ii < numParticles; ++ ii ) {
 
 	        if ( opt_perParticleParamSetter ) {
@@ -289,15 +296,15 @@
 	        var pLifeTime = parameters.lifeTime;
 	        var pStartTime = ( parameters.startTime === null ) ? ( ii * parameters.lifeTime / numParticles ) : parameters.startTime;
 	        var pFrameStart = parameters.frameStart + plusMinus(parameters.frameStartRange);
-	        var pPosition = new THREE.Vector3().addVectors( new THREE.Vector3().fromArray(parameters.position), new THREE.Vector3().fromArray(plusMinusVector(parameters.positionRange)));
-	        var pVelocity = new THREE.Vector3().addVectors( new THREE.Vector3().fromArray(parameters.velocity), new THREE.Vector3().fromArray(plusMinusVector(parameters.velocityRange)));
-	        var pAcceleration = new THREE.Vector3().addVectors( new THREE.Vector3().fromArray(parameters.acceleration), new THREE.Vector3().fromArray( plusMinusVector( parameters.accelerationRange )));
-	        var pColorMult = new THREE.Vector4().addVectors( new THREE.Vector4().fromArray(parameters.colorMult), new THREE.Vector4().fromArray(plusMinusVector( parameters.colorMultRange )));
+	        pPosition.fromArray(parameters.position).add(plusMinusVector(parameters.positionRange));
+	        pVelocity.fromArray(parameters.velocity).add(plusMinusVector(parameters.velocityRange));
+	        pAcceleration.fromArray(parameters.acceleration).add( plusMinusVector( parameters.accelerationRange ));
+	        pColorMult.fromArray(parameters.colorMult).add(plusMinusVector( parameters.colorMultRange ));
 	        var pSpinStart = parameters.spinStart + plusMinus(parameters.spinStartRange);
 	        var pSpinSpeed = parameters.spinSpeed + plusMinus(parameters.spinSpeedRange);
 	        var pStartSize = parameters.startSize + plusMinus(parameters.startSizeRange);
 	        var pEndSize = parameters.endSize + plusMinus(parameters.endSizeRange);
-	        var pOrientation = new THREE.Vector4().fromArray(parameters.orientation);
+	        pOrientation.fromArray(parameters.orientation);
 
 	        for (var jj = 0; jj < 1; ++jj) {
 
@@ -580,11 +587,7 @@
 
 		}
 
-		this.randomFunction_ = opt_randomFunction || function () {
-
-			return Math.random();
-
-		};
+		this.randomFunction_ = opt_randomFunction || Math.random;
 
 		this.defaultColorTexture = colorTexture;
 		this.defaultRampTexture = rampTexture;
