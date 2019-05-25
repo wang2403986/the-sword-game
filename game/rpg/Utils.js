@@ -193,6 +193,7 @@ function cloneFbx(fbx) {
     if(fbx.selectionCircleId){
     	clone.selectionCircleId = fbx.selectionCircleId;
     	clone.selectionCircle=clone.children[clone.selectionCircleId];
+    	clone.selectionCircle.onBeforeRender = fbx.selectionCircle.onBeforeRender;
     }
     if(fbx.boundingBoxGeometry) clone.boundingBoxGeometry=fbx.boundingBoxGeometry;
     return clone;
@@ -283,6 +284,7 @@ function cloneFbx(fbx) {
 			});
 		}
 		function onLoaded( object ) {
+			if(model.selectable!==undefined) object.selectable=model.selectable;
 			if(model.name) loadedModels[model.name] = object;
 			if(object.animations&& object.animations.length){
 				initMeshAnimation(object);
@@ -316,17 +318,23 @@ function cloneFbx(fbx) {
 				object.selectionCircle.position.set(0,6,0)
 				object.selectionCircle.visible=false;
 				object.selectionCircleId=object.children.length;
-				object.add(object.selectionCircle);
+					object.add(object.selectionCircle);
 			}
 			initializeModel(object)
 			if(callback) callback(object);
+		}
+		function onBeforeRender(){
+			if(this.parent.entity )
+				if(this.parent.entity.teamId===1)
+					this.material.color.setRGB( 0,1,0);
+				else this.material.color.setRGB( 1,0,0);
 		}
 		function initializeModel( object ) {
 			if(model.scale) object.scale.set(model.scale,model.scale,model.scale);
 			if(model.position) object.position.set(model.position.x,model.position.y,model.position.z);
 			if(model.rotation) object.rotation.set(model.rotation.x,model.rotation.y,model.rotation.z);
 			if(model.boundingBox) {
-				
+				object.selectionCircle.onBeforeRender = onBeforeRender;
 			}
 			if(model.selectionScale)
 				object.selectionCircle.scale.set(model.selectionScale,model.selectionScale,model.selectionScale)

@@ -43,12 +43,13 @@ function init() {
 	// ground
 	var texture = THREE.ImageUtils.loadTexture('../assets/materials/sand.png');
 	texture.wrapS=texture.wrapT = THREE.RepeatWrapping;texture.repeat.set(10, 10);
-	var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(worldSize.x, worldSize.y), new THREE.MeshLambertMaterial( { color: 0x666666,map:texture, depthWrite: true } ) );
-	mesh.geometry.rotateX( - Math.PI / 2 );
-	mesh.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
-	mesh.receiveShadow = true;
-	terrin = mesh;
-	scene.add( mesh );
+//	var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(worldSize.x, worldSize.y), new THREE.MeshLambertMaterial( { color: 0x666666,map:texture, depthWrite: true } ) );
+//	mesh.geometry.rotateX( - Math.PI / 2 );
+//	mesh.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
+//	mesh.receiveShadow = true;
+//	terrin = mesh;
+//	scene.add( mesh );
+	
 	
 //	var grid = new THREE.GridHelper( worldSize.x, worldSize.x, 0x000000, 0x000000 );
 //	grid.geometry.translate(worldSize.x/2, 0, worldSize.y/2);
@@ -86,16 +87,7 @@ function animate() {
 	if(camera) {
 		camera.update && camera.update();
 		renderer.render( scene, camera );
-		var moveX=mouse.moveX, moveY=mouse.moveY;
-		camera.position.x+=moveX;
-		camera.position.z+=moveY;
-		controls.target.x+=moveX;
-		controls.target.z+=moveY;
-		
-		light.position.x+=moveX;
-		light.position.z+=moveY;
-		light.target.position.x+=moveX;
-		light.target.position.z+=moveY;
+		if(window.moveCamera) moveCamera(mouse.moveX, mouse.moveY);
 	}
 	stats.update();
 }
@@ -103,8 +95,7 @@ function animate() {
 document.addEventListener( 'mousemove', function ( event ) {
 	// calculate mouse position in normalized device coordinates
 	// (-1 to +1) for both components
-	mouse.moveX=0;
-	mouse.moveY=0;
+	mouse.moveX = mouse.moveY=0;
 	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 	

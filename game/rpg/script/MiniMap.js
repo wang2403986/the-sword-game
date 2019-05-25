@@ -7,10 +7,6 @@
 		var size = 256;var cellSize=8;
 		var self = this;
 		window.moveCamera = function(moveX, moveY){
-			moveX += v0.x;
-			moveY += v0.y;
-			moveX = moveX-camera.position.x ;
-			moveY= moveY-camera.position.z ;
 			camera.position.x+=moveX;
 			camera.position.z+=moveY;
 			controls.target.x+=moveX;
@@ -24,8 +20,8 @@
 			self.update();
 		};
 		c.addEventListener( 'mouseup', function ( event ) {
-			var moveX=event.offsetX *(worldSize.x/size);
-			var moveY=event.offsetY*(worldSize.y/size);
+			var moveX=event.offsetX *(worldSize.x/size) +v0.x -camera.position.x;
+			var moveY=event.offsetY*(worldSize.y/size) +v0.y -camera.position.z;
 			window.moveCamera(moveX, moveY);
 		} );
 		c.addEventListener( 'mousemove', function ( e ) {
@@ -38,7 +34,8 @@
 		//ctx.fillStyle="#FF0000";
 		ctx.fillRect(0,0,size,size);
 		ctx.fillStyle="#FF0000";
-		ctx.strokeStyle="#FF0000";ctx.strokeWidth=cellSize;
+		ctx.strokeStyle="#00FF00";
+		ctx.strokeWidth=cellSize;
 		
 		
 		this.update = function(){
@@ -69,6 +66,12 @@
 					var x=unit.pos.x,y=unit.pos.z;
 					x=x-r/2;y=y-r/2;
 					r=r<4?4:r;
+					if(unit.teamId===-1)continue;
+					if(unit.teamId===1){
+						ctx.fillStyle="#00FF00";
+					}else{
+						ctx.fillStyle="#FF0000";
+					}
 					ctx.fillRect(x/2,y/2,r,r);
 				}
 				var ratio = (size/worldSize.x);

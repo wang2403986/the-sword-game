@@ -22,46 +22,69 @@
 	var scaleFactor = 1, invScaleFactor = 1;
 	function PathFinder(options) {
 		var tasks = [];
-		this.findPath = function(unit, target) {
+		this.findPath = function(unit, type) {
 			tasks.push(unit);
+			if(type===0 && tasks.length>20){
+				tasks.length = tasks.length -1;
+				tasks.splice(8, 0, unit);
+			}
 		};
 		/**
 	     * 检测两个矩形是否碰撞
 	     */
-		function isCollisionWithRect( x1,  y1,  w1,  h1, x2, y2,  w2,  h2) {
+		function isCollisionWithRect( x1,  y1,  w1, x2, y2,  w2) {
 			if (x1 >= x2 && x1 >= x2 + w2) {
 	            return false;
 	        } else if (x1 <= x2 && x1 + w1 <= x2) {
 	            return false;
-	        } else if (y1 >= y2 && y1 >= y2 + h2) {
+	        } else if (y1 >= y2 && y1 >= y2 + w2) {
 	            return false;
-	        } else if (y1 <= y2 && y1 + h1 <= y2) {
+	        } else if (y1 <= y2 && y1 + w1 <= y2) {
 	            return false;
 	        }
 	        return true;
 	    }
+//		function isCollisionWithRect2( x1,  y1,  w1,  h1, x2, y2,  w2,  h2) {
+//			if (x1 >= x2 && x1 >= x2 + w2) {
+//	            return false;
+//	        } else if (x1 <= x2 && x1 + w1 <= x2) {
+//	            return false;
+//	        } else if (y1 >= y2 && y1 >= y2 + h2) {
+//	            return false;
+//	        } else if (y1 <= y2 && y1 + h1 <= y2) {
+//	            return false;
+//	        }
+//	        return true;
+//	    }
 		this.getCollisionObject = function(unit, preferMovingUnit) {
-			var scale=scaleFactor;
 			unit.nextPos = unit.aiComponent.nextPos;
-			var x0= (unit.pos.x*scale)>>0;
-			var y0= (unit.pos.z*scale)>>0;
-			var x1= (unit.nextPos.x*scale)>>0;
-			var y1= (unit.nextPos.z*scale)>>0;
-			var r0=unit.radius, collision, result;
-			x1 = x1- (r0>>0), y1 = y1-(r0>>0);
-			var aiComponent,g_gameUnits=window.g_gameUnits;
-			for (var j=0; j<g_gameUnits.length;j++) {
-				var b = g_gameUnits[j];
+			var nextPos=unit.nextPos;
+			var x1= (nextPos.x)>>0;
+			var y1= (nextPos.z)>>0;
+			var r1=unit.radius;
+			x1 = x1- (r1>>0), y1 = y1-(r1>>0);
+			var w1=2*r1;
+			var units=window.g_gameUnits;
+			var aiComponent, collision, result, pos;
+			var length = units.length;
+			for (var j=0; j<length;j++) {
+				var b = units[j];
 				if(b === unit) continue;
 				var radius=b.radius;
-				var centerX=(b.pos.x)>>0, centerY=(b.pos.z)>>0,
+				pos=b.pos;
+				var centerX=(pos.x)>>0, centerY=(pos.z)>>0,
 				  startX = centerX- (radius>>0), startY = centerY-(radius>>0);
-				collision =isCollisionWithRect(x1,  y1,  2*r0, 2*r0,  startX, startY, 2*radius,  2*radius);
+				var w2=2*radius;
+				collision =isCollisionWithRect(x1,  y1,  w1,  startX, startY, w2);
 				if (collision) {
 					result = b;
 					aiComponent=b.aiComponent;
-					if(!preferMovingUnit || (aiComponent&&aiComponent.autoMove && !aiComponent.isWaiting))
+					if(!preferMovingUnit || (aiComponent&&aiComponent.autoMove && !aiComponent.isWaiting)){
+						if (preferMovingUnit){
+//							b.oppositeDirection= true;
+						}
 						return b;
+					}
 				}
 			}
 			return result;
@@ -74,6 +97,7 @@
 			var i=0, unitsNumber=0;
 			var aiComponent = unit0.aiComponent;
 			var avoidance=aiComponent.attackTarget||aiComponent.skillTarget||aiComponent.findPathType === 2;
+			avoidance=avoidance || aiComponent.needsFindPath;
 			for (var j=0; j<g_gameUnits.length;j++) {
 				var obstacleUnit = g_gameUnits[j];
 				var component=obstacleUnit.aiComponent;
@@ -82,7 +106,8 @@
 				objects[i]=obstacleUnit.pos.x;
 				objects[i+1]=obstacleUnit.pos.z;
 				objects[i+2]= obstacleUnit.radius;
-				i+=3; unitsNumber++;
+				i+=3;
+				unitsNumber++;
 			}
 			var target = aiComponent.findPathPosition;
 			if(aiComponent.findPathType === 1) target=aiComponent.destPosition;

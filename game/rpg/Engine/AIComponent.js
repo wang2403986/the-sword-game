@@ -60,8 +60,6 @@
 	    this.updateOrientation(fElapse);
 	    this.updateRotateAnimation(fElapse);
 	    this.updateAutoMove(fElapse);
-	    //地形高度
-	    this.updateHeight(fElapse);
 	    if(this.state===PS_ATTACK)
 	    	this.updateAttackState();
 	    else if(this.autoMove)
@@ -70,6 +68,8 @@
 	    	this.updateFreeState();
 	    else if(this.state===PS_SKILL)
 	    	this.updateSkillState();
+	    //地形高度
+	    this.updateHeight(fElapse);
 	}
 	AIComponent.prototype.attackTo=function(target){
 		this.autoFindPathMax = now + 10*60*1000;
@@ -109,21 +109,21 @@
 		}
 	};
 	AIComponent.prototype.startSkill=function() {
+//		if(!this.skillCooldown){
+//			return;
+//		}
+		console.log('startSkill');
 		this.skillStartTime = now;
 		this.autoMove = false;//stop move state
 		this.findPathDiscarded = true;//stop findPath
 		this.stopAttack()//stop Attack
 		this.setState(PS_SKILL);
-		if(this.skillTarget.pos){
-			new BurstEffect(this.skillTarget.pos);
-			//showSkillEffect(0,this.source,this.skillTarget);
-		}
-		console.log('startSkill')
+		this.source.model.mixer.currentAction.time =0;
+		this.hasHit=false;
 	}
 	AIComponent.prototype.stopSkill=function() {
 		if (!this.skillTarget) return;
 		console.log('stopSkill');
-		this.skillStartTime = 0;
 		this.skillTarget=null;
 		this.autoMove = false;//stop move state
 		this.setState(PS_FREE);
@@ -137,15 +137,16 @@
 	}
 	AIComponent.prototype.startAttack=function() {
 		console.log('startAttack')
+		var source=this.source;
 		this.autoMove = false;//stop move state
 		this.findPathDiscarded = true;//stop findPath
-		if(this.isLockTarget) this.destPosition.copy(this.stopPosition.copy(this.source.pos));
+		if(this.isLockTarget) this.destPosition.copy(this.stopPosition.copy(source.pos));
 		this.setState(PS_ATTACK);
-		this.lastActionTime = 0;
-		this.isHit=false;
-		this.fired=false;
+		var time = source.model.mixer.currentAction.time;
+		this.lastActionTime = time;
+		this.hasHit= time > 0 && time >source.attackHitTime;
 		var aiComponent=this.attackTarget.aiComponent;
-		if(aiComponent&& !aiComponent.attacker) aiComponent.attacker=this.source;
+		if(aiComponent&& !aiComponent.attacker) aiComponent.attacker=source;
 	}
 	AIComponent.prototype.stopAttack=function() {
 		if(!this.attackTarget) return;
@@ -162,6 +163,20 @@
 		this.setState(PS_FREE);
 	}
 	AIComponent.prototype.updateSkillState = function() {
+		var source=this.source;
+		var faceDir = v3_4.subVectors(this.skillTarget.pos , source.pos);
+	    this.faceToDir(faceDir);
+		var time=source.model.mixer.currentAction.time;
+	    if(this.backOrientation && !this.hasHit) {
+	    	source.model.mixer.currentAction.time = time = 0;
+	    	this.skillStartTime=now;
+	    }
+	    if (!this.hasHit && now- this.skillStartTime>10){
+	    	if(this.skillTarget.pos){
+				new BurstEffect(this.skillTarget.pos);
+			}
+	    	this.hasHit =true;
+		}
 		if (now- this.skillStartTime>2600){
 			this.stopSkill();
 		}
@@ -175,22 +190,28 @@
 		var attackTarget=this.attackTarget, source=this.source;
 		var aiComponent=attackTarget.aiComponent;
 		if(aiComponent&& !aiComponent.attacker) aiComponent.attacker=source;
-		var faceDir = v3_4.subVectors(attackTarget.pos , source.pos);
-	    faceDir.y = 0.0;
+
+		var faceDir = v3_4.subVectors(this.attackTarget.pos , source.pos);
 	    this.faceToDir(faceDir);
-		
 	    var time=source.model.mixer.currentAction.time;
-	    if (!source.rangedAttack && !this.isHit&& (time >= source.attackHitTime || this.lastActionTime>time)) {
-			if(source.audio) {
-				if(source.audio.isPlaying) source.audio.stop();
-				source.audio.play();
+	    if(this.backOrientation &&(!this.hasHit)) {
+	    	source.model.mixer.currentAction.time = time = this.lastActionTime;
+	    }
+
+	    if (!this.hasHit&& (time >source.attackHitTime || this.lastActionTime>time)) {
+	    	this.hasHit = true;
+			if (source.rangedAttack){
+				new Projectile(source, attackTarget);
+			} else{
+				if(source.audio) {
+					if(source.audio.isPlaying) source.audio.stop();
+					source.audio.play();
+				}
+	    		this.attackTarget.onHit && this.attackTarget.onHit(source);
 			}
-    		this.attackTarget.onHit && this.attackTarget.onHit(source);
-    		this.isHit = true;
 	    }
 	    if (this.lastActionTime>time) { // at each animation finished
-	    	this.isHit = false;
-	    	this.fired=false;
+	    	this.hasHit = false;
 	    	var chaseDistance=source.pos.distanceToSquared(this.stopPosition);
 			var distance=distanceToSquared(source.pos, attackTarget.pos);
 			var chaseRange = attackTarget.range+ source.chaseRange;
@@ -210,11 +231,6 @@
 				this.stopAttack();
 			}
 	    }
-	    if(source.rangedAttack&& !this.fired&& time >=source.attackCastTime){
-			this.fired=true;
-			new Projectile(source, attackTarget);
-		}
-		
 	    this.lastActionTime=time;
 	};
 	
@@ -287,7 +303,7 @@
 		}
 		if (!this.findPathInProgress) {
 			this.findPathInProgress=true
-			iPathFinder.findPath(this.source, dest);
+			iPathFinder.findPath(this.source, type);
 		}
 	}
 	AIComponent.prototype.updateHeight=function(elapse) {
@@ -306,6 +322,7 @@
 //	    }
 	    if (position.y !== h) {
 	    	position.y = h;
+	    	position.height=h;
 	    }
 	}
 	var v_look=new THREE.Vector3(0, 1, 0);
@@ -327,13 +344,8 @@
 	AIComponent.prototype.updateOrientation=function(fElapse) {
 		if (!this.backOrientation) return;
 		this.orientationElapse +=  fElapse*100;//12
-		var t= this.orientationElapse / this.rotateTotal;
 		if(this.rotateTotal > 0.000000005) {
-			THREE.Quaternion.slerp( this.rotStart, this.rotTarget, orientation, t);
-			v_look.set(0,0,1).applyQuaternion( orientation );
-		    v_lookAt.set(this.dx, 0, this.dy);
-			var angle = v_look.angleTo(v_lookAt);
-			if(angle<= Math.PI/2) this.backOrientation=0;
+			if(this.orientationElapse + Math.PI/2 > this.rotateTotal) this.backOrientation=0;
 		} else
 			this.backOrientation=0;
 	}
@@ -341,8 +353,11 @@
 	AIComponent.prototype.faceToDir=function(dir) {
 		if (!this.source)
 			return;
+		dir.y=0;
 		var lookAt =  v_lookAt.copy(dir), m_pSource=this.source;
-		lookAt.add(m_pSource.pos).y = 0;
+		var pos = m_pSource.model.position;
+		pos.y=0;
+		lookAt.add(pos);
 		this.rotStart.copy(m_pSource.model.quaternion);
 	    m_pSource.model.lookAt(lookAt);
 	    this.rotTarget.copy(m_pSource.model.quaternion);
@@ -353,7 +368,7 @@
 	    this.rotateTotal = angle;
 	    this.rotateElapse=0;
 	    this.orientationElapse=0;
-	    this.backOrientation=1;
+	    this.backOrientation= angle > Math.PI/2;
 	//    var/*D3DXVECTOR3*/ look(dir), up(0, 1, 0), right;
 	//    look.y = 0.0f;
 	//    D3DXVec3Normalize(look, look);
@@ -527,7 +542,7 @@
 	AIComponent.prototype.setWaitTime=function(time) {
 		this.isWaiting = true;
 		this.setState(PS_FREE);
-		this.autoMoveWaitTime = time===undefined? ( Date.now() + 700) :time;
+		this.autoMoveWaitTime = time===undefined? ( Date.now() + 600) :time;
 	};
 
 	AIComponent.prototype.onMoveToFinished= function () {};

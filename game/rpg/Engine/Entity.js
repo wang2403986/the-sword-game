@@ -10,7 +10,7 @@
 	iEntity.array1=[];
 	function iEntity() {
 		this.rangedAttack=false;
-		this.attackHitTime=0.28,this.attackCastTime=0.89,this.attackDamage=1;
+		this.attackHitTime=0.28, this.attackDamage=1;
 		this.id = generateID();
 		this.maxHP=100;// max Health pointÂúÑªÉúÃüÖµ
 		this.HP=100;//Health point
@@ -56,13 +56,13 @@
 	    }
 	    if (this.aiComponent!==undefined) {
 	    	this.aiComponent.update(elapse);
-	    }
-	    if (this.model && this.acquisitionRange 
-	    		&& now > this._autoAttackDelay + this._lastAutoAttackTime) {
-	    	if(this.aiComponent&&this.aiComponent.state!==Define.PS_ATTACK){
-	    		this.getNearbyUnits(this.pos, this.acquisitionRange, 50, false, true);
-		    	this._lastAutoAttackTime = Date.now();
-	    	}
+	    	if (this.model && this.acquisitionRange 
+		    		&& now > this._autoAttackDelay + this._lastAutoAttackTime) {
+		    	if(this.aiComponent.state!==Define.PS_ATTACK){
+		    		this.getNearbyUnits(this.pos, this.acquisitionRange, 50, false, true);
+			    	this._lastAutoAttackTime = Date.now();
+		    	}
+		    }
 	    }
 	}
 	
@@ -73,13 +73,16 @@
 		var distanceToSquared = window.distanceToSquared;
 		for (var i=0; i<g_gameTeams.length;i++) {
 			var teamPlayers = g_gameTeams[i];
+			var teamId = undefined;
+			if(teamPlayers.length) teamId=teamPlayers[0].teamId;
 			if(friendly === true) {
-				if(teamPlayers.length && teamPlayers[0].teamId !== this.teamId)
+				if(teamId !== this.teamId)
 					continue;
 			} else if(friendly === false) {
-				if(teamPlayers.length && teamPlayers[0].teamId === this.teamId)
+				if(teamId === this.teamId)
 					continue;
 			}
+			if(isAutoAttack && teamId === -1) continue;
 			for (var j=0; j<teamPlayers.length;j++) {
 				var units = teamPlayers[j], unitsLen = units.length;
 				for (var k=0; k< unitsLen;k++) {

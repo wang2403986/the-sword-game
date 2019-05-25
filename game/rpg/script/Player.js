@@ -38,8 +38,7 @@
 		addTeamUnit(object.entity, 1, 1);
 		// ÃÌº”π÷ŒÔ
 		addMonster();
-		object.entity.attackHitTime=1.7666664123535156 - .88;//0.36666667461395264
-		//object.entity.attackCastTime=.89;
+		object.entity.attackHitTime=0.89;
 		object.entity.rangedAttack=true;
 		object.entity.attackRange=15;
 		object.entity.maxHP= object.entity.HP=1000;

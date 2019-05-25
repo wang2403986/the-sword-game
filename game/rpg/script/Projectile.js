@@ -1,43 +1,20 @@
 (function(){
 	
-	
-	
-	
-	
 	var objectsPool =[];
 	var particle=THREE.ImageUtils.loadTexture('textures/particle2.png');
-//Bullet.material=new THREE.SpriteMaterial( {map: sprite, transparant:true } );
-//	Projectile.material=
-//new THREE.PointsMaterial( { size: 10, map: particle, blending: THREE.AdditiveBlending,
-//	depthTest: true, transparent : true, alphaTest:.01,depthWrite: false, color: 0xffff00 } );
-//var geometry = new THREE.BufferGeometry();
-//var vertices = new Float32Array(10*3);
-//for(var e=0,k=0;e<vertices.length;e+=3,k++) {
-//	vertices[e]= (e)*0;
-//	vertices[e+1]= 0;
-//	vertices[e+2]= (e)*1;
-//}
-//geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-//geometry.computeBoundingSphere()
-//Bullet.geometry = geometry;
-//setInterval(function(){
-//	var x = Math.random()*500, y=Math.random()*500;
-////	if(Math.random()>.5)
-////		new Projectile(new THREE.Vector3(x,0,500), new THREE.Vector3(x,0,0));
-////	else new Projectile(new THREE.Vector3(x,0,0), new THREE.Vector3(x,0,500));
-//},1000)
 	window.Projectile=Projectile;
 function Projectile(source, attackTarget, m_speed, gravity) {
 	var position=source,target=attackTarget;
 	if(position.x===undefined)
 		position=source.pos,target=attackTarget.pos;
+	var y = position.height?position.height:0;
 	var transform,totalTime,time=0,verticalSpeed, g = 9.8*5, speed = 20, angleSpeed, angle;
 	
 	var direction= new THREE.Vector3();
 	var tmp1= new THREE.Vector3();
-	var startPos= new THREE.Vector3().copy(position);
-	var endPos= new THREE.Vector3().copy(target); 
-	startPos.y=endPos.y=6;
+	var startPos= new THREE.Vector3().set(position.x, position.height+ 6, position.z);
+	var endPos= new THREE.Vector3().set(target.x, target.height+ 6, target.z); 
+//	startPos.y=endPos.y= y + 6;
 	var lastPos= new THREE.Vector3().copy(startPos);
 	
     this.start =function() {
@@ -46,13 +23,8 @@ function Projectile(source, attackTarget, m_speed, gravity) {
     	if(objectsPool.length){
     		transform = objectsPool.pop();
     	} else {
-    		transform = new Fire();//new THREE.Points(geometry, Bullet.material );
+    		transform = new Fire();
     		transform.init()
-//    		var geometry = new THREE.BoxBufferGeometry(2, 2, 10);
-//    	    var material = new THREE.MeshBasicMaterial({
-//    	        color: 0x00ff7c
-//    	    });
-//    		transform = {system:new THREE.Mesh(geometry, material),update:function(){}};
     	}
     	transform.position = transform.system.position;
     	transform.rotation = transform.system.rotation;
@@ -60,7 +32,7 @@ function Projectile(source, attackTarget, m_speed, gravity) {
     	transform.position.copy(startPos)
     	scene.add( transform.system );
     	var tmepDistance = startPos.distanceTo(endPos);
-    	var tempTime = tmepDistance / speed;
+    	var tempTime = tmepDistance / speed; totalTime=tempTime;
         var riseTime, downTime;
         riseTime = downTime = tempTime / 2;
          verticalSpeed = g * riseTime;
@@ -79,11 +51,12 @@ function Projectile(source, attackTarget, m_speed, gravity) {
     function update(deltaTime)
     {
     	transform.update(deltaTime, (time+deltaTime))
-    	if (transform.position.y < endPos.y) {
+    	if (time+deltaTime > totalTime) {
     		if(attackTarget.onHit){
     			attackTarget.onHit(source);
     		}
-    		removeUpdater(this); scene.remove( transform.system );
+    		removeUpdater(this);
+    		scene.remove( transform.system );
     		objectsPool.push(transform);
     		return;
     	}
@@ -100,24 +73,24 @@ function Projectile(source, attackTarget, m_speed, gravity) {
 window.Fire=Fire;
   function Fire() {
 	  var _this = this;
-    _this.numParticles = 10.00;
+    _this.numParticles = 10;
     _this.opts = {
-      sparkLifecycle: 0.7,
-      sparkStartSize: 10*100,
-      sparkEndSize: 20*100,
-      sparkDistanceScale: 1.4,
+      sparkLifecycle: 0.5,
+      sparkStartSize: 13*1.0,
+      sparkEndSize: 14*1.0,
+      sparkDistanceScale: 1.8*50,
 
-      flameMinHeight: 0.02*2,
-      flameMaxHeight: 0.2*2,
-      flamePeriod: 0.5*0,
-      windStrength: 0.14*0,
-      windFrequency: 0.5*0,
+      flameMinHeight: 0.08*1,
+      flameMaxHeight: 0.14*1,
+      flamePeriod: 1*1,
+      windStrength: 0.0,
+      windFrequency: 0.0,
 
       color: 0x6e4d00, //0xffcf5c,
       endColor: 0x8e3920, //0xc0988c,
 
       opacity: 1.0,
-      gravity: 0.05*100,
+      gravity: 8.0,
 
       // static - set at start
       baseWidth: 0.8 // angle - multiple of PI

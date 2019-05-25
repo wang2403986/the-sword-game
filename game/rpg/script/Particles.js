@@ -33,7 +33,7 @@
 
 		this.numParticles = 1;
 
-		this.numFrames = 1;
+		this.numFrames = 1; this.numFramesX = 1;this.numFramesY = 1;
 
 		this.frameDuration = 1;
 
@@ -151,11 +151,249 @@
 		}
 
 	};
+	
+//	var particles_billboard =`
+//	uniform int billboardType;
+//	uniform mat4 viewInverse;
+//	uniform vec3 worldVelocity;
+//	uniform vec3 worldAcceleration;
+//	uniform float timeRange;
+//	uniform float time;
+//	uniform float timeOffset;
+//	uniform float frameDuration;
+//	uniform float numFrames;
+//
+//	// Incoming vertex attributes
+//	attribute vec4 uvLifeTimeFrameStart;
+//	attribute float startTime;
+//	attribute vec4 velocityStartSize;
+//	attribute vec4 accelerationEndSize;
+//	attribute vec4 spinStartSpinSpeed;
+//	attribute vec4 colorMult;
+//
+//	// Outgoing variables to fragment shader
+//	varying vec2 outputTexcoord;
+//	varying float outputPercentLife;
+//	varying vec4 outputColorMult;
+//
+//	void main() {
+//		mat4 billboardMatrix;
+//		if ( billboardType == 4 ){
+//			billboardMatrix = mat4(
+//					viewInverse[0],
+//					viewInverse[1],
+//					viewInverse[2],
+//					vec4(0.0, 0.0,1.0, 1.0));
+//		}
+//		else {
+//		
+//			billboardMatrix = mat4(
+//				vec4(1.0, 0.0, 0.0, 0.0),
+//				vec4(0.0, 1.0, 0.0, 0.0),
+//				vec4(0.0, 0.0, 1.0, 0.0),
+//				vec4(0.0, 0.0, 0.0, 1.0));
+//		
+//			if ( billboardType == 1 ){
+//				billboardMatrix *= mat4(
+//					vec4(1.0, 0.0, 0.0, 0.0),
+//					vec4(0.0, viewInverse[1].y, viewInverse[1].z, 0.0),
+//					vec4(0.0, viewInverse[2].y, viewInverse[2].z, 0.0),
+//					vec4(0.0, 0.0, 0.0, 1.0)
+//					);
+//			}
+//		
+//			if ( billboardType == 2 ){
+//				billboardMatrix *= mat4(
+//					vec4(viewInverse[0].x, 0.0, viewInverse[0].z, 0.0),
+//					vec4(0.0, 1.0, 0.0, 0.0),
+//					vec4(viewInverse[2].x, 0.0, viewInverse[2].z, 0.0),
+//					vec4(0.0, 0.0, 0.0, 1.0)
+//					);
+//			}
+//		
+//			if ( billboardType == 3 ){
+//				billboardMatrix *= mat4(
+//					vec4(viewInverse[0].x, viewInverse[0].y, 0.0, 0.0),
+//					vec4(viewInverse[1].x, viewInverse[1].y, 0.0, 0.0),
+//					vec4(0.0, 0.0, 1.0, 0.0),
+//					vec4(0.0, 0.0, 0.0, 1.0)
+//					);
+//			}
+//		
+//		}
+//	    float lifeTime = uvLifeTimeFrameStart.z;
+//	    float frameStart = uvLifeTimeFrameStart.w;
+//	    vec3 velocity = (modelMatrix * vec4(velocityStartSize.xyz,
+//	                                 0.)).xyz + worldVelocity;
+//	    float startSize = velocityStartSize.w;
+//	    vec3 acceleration = (modelMatrix * vec4(accelerationEndSize.xyz,
+//	                                     0)).xyz + worldAcceleration;
+//	    float endSize = accelerationEndSize.w;
+//	    float spinStart = spinStartSpinSpeed.x;
+//	    float spinSpeed = spinStartSpinSpeed.y;
+//
+//	    float localTime = mod((time - timeOffset - startTime), timeRange);
+//	    float percentLife = localTime / lifeTime;
+//
+//	    float frame = mod(floor(localTime / frameDuration + frameStart),
+//	                     numFrames);
+//	    float uOffset = frame / numFrames;
+//	    float u = uOffset + (uv.x + 0.5) * (1. / numFrames);
+//
+//	    outputTexcoord = vec2(u, uv.y + 0.5);
+//	    outputColorMult = colorMult;
+//
+//	    vec3 basisX = billboardMatrix[0].xyz;//viewInverse[0].xyz;
+//	    vec3 basisZ = billboardMatrix[1].xyz;//viewInverse[1].xyz;
+//	    vec4 vertexWorld = modelMatrix * vec4(position, 1.0);
+//
+//	    float size = mix(startSize, endSize, percentLife);
+//	    size = (percentLife < 0. || percentLife > 1.) ? 0. : size;
+//	    float s = sin(spinStart + spinSpeed * localTime);
+//	    float c = cos(spinStart + spinSpeed * localTime);
+//
+//	    vec2 rotatedPoint = vec2(uv.x * c + uv.y * s, -uv.x * s + uv.y * c);
+//	    vec3 localPosition = vec3(basisX * rotatedPoint.x + basisZ * rotatedPoint.y) * size +
+//	                        velocity * localTime +
+//	                        acceleration * localTime * localTime +
+//	                        vertexWorld.xyz;
+//
+//	    outputPercentLife = percentLife;
+//	    gl_Position = projectionMatrix *viewMatrix * vec4(localPosition, 1.);
+//
+//	}`;
 
-	var billboardParticleInstancedVertexShader = "\nuniform mat4 viewInverse;\nuniform vec3 worldVelocity;\nuniform vec3 worldAcceleration;\nuniform float timeRange;\nuniform float time;\nuniform float timeOffset;\nuniform float frameDuration;\nuniform float numFrames;\nattribute vec4 uvLifeTimeFrameStart;\nattribute float startTime;\nattribute vec4 velocityStartSize;\nattribute vec4 accelerationEndSize;\nattribute vec4 spinStartSpinSpeed;\nattribute vec4 colorMult;\nvarying vec2 outputTexcoord;\nvarying float outputPercentLife;\nvarying vec4 outputColorMult;\nvoid main() {\n    float lifeTime = uvLifeTimeFrameStart.z;\n    float frameStart = uvLifeTimeFrameStart.w;\n    vec3 velocity = (modelMatrix * vec4(velocityStartSize.xyz,\n                                 0.)).xyz + worldVelocity;\n    float startSize = velocityStartSize.w;\n    vec3 acceleration = (modelMatrix * vec4(accelerationEndSize.xyz,\n                                     0)).xyz + worldAcceleration;\n    float endSize = accelerationEndSize.w;\n    float spinStart = spinStartSpinSpeed.x;\n    float spinSpeed = spinStartSpinSpeed.y;\n    float localTime = mod((time - timeOffset - startTime), timeRange);\n    float percentLife = localTime / lifeTime;\n    float frame = mod(floor(localTime / frameDuration + frameStart),\n                     numFrames);\n    float uOffset = frame / numFrames;\n    float u = uOffset + (uv.x + 0.5) * (1. / numFrames);\n    outputTexcoord = vec2(u, uv.y + 0.5);\n    outputColorMult = colorMult;\n    vec3 basisX = viewInverse[0].xyz;\n    vec3 basisZ = viewInverse[1].xyz;\n    vec4 vertexWorld = modelMatrix * vec4(position, 1.0);\n    float size = mix(startSize, endSize, percentLife);\n    size = (percentLife < 0. || percentLife > 1.) ? 0. : size;\n    float s = sin(spinStart + spinSpeed * localTime);\n    float c = cos(spinStart + spinSpeed * localTime);\n    vec2 rotatedPoint = vec2(uv.x * c + uv.y * s, -uv.x * s + uv.y * c);\n    vec3 localPosition = vec3(basisX * rotatedPoint.x + basisZ * rotatedPoint.y) * size +\n                        velocity * localTime +\n                        acceleration * localTime * localTime +\n                        vertexWorld.xyz;\n    outputPercentLife = percentLife;\n    gl_Position = projectionMatrix * viewMatrix * vec4(localPosition, 1.);\n}";
+	var billboardParticleInstancedVertexShader =`
+	
+uniform mat4 viewInverse;
+uniform vec3 worldVelocity;
+uniform vec3 worldAcceleration;
+uniform float timeRange;
+uniform float time;
+uniform float timeOffset;
+uniform float frameDuration;
+uniform float numFrames;
+uniform float numFramesX;uniform float numFramesY;
+attribute vec4 uvLifeTimeFrameStart;
+attribute float startTime;
+attribute vec4 velocityStartSize;
+attribute vec4 accelerationEndSize;
+attribute vec4 spinStartSpinSpeed;
+attribute vec4 colorMult;
+varying vec2 outputTexcoord;
+varying float outputPercentLife;
+varying vec4 outputColorMult;
+void main() {
+    float lifeTime = uvLifeTimeFrameStart.z;
+    float frameStart = uvLifeTimeFrameStart.w;
+    vec3 velocity = (modelMatrix * vec4(velocityStartSize.xyz,
+                                 0.)).xyz + worldVelocity;
+    float startSize = velocityStartSize.w;
+    vec3 acceleration = (modelMatrix * vec4(accelerationEndSize.xyz,
+                                     0)).xyz + worldAcceleration;
+    float endSize = accelerationEndSize.w;
+    float spinStart = spinStartSpinSpeed.x;
+    float spinSpeed = spinStartSpinSpeed.y;
+    float localTime = mod((time - timeOffset - startTime), timeRange);
+    float percentLife = localTime / lifeTime;
+    float frame = mod(floor(localTime / frameDuration + frameStart),
+                     numFrames);
+    //float uOffset = frame / numFrames;
+    float uOffset = mod(frame , numFramesX);
+    //uOffset = uOffset / numFramesX;
+    float vOffset = floor(frame / numFramesX);
+    //vOffset = vOffset / numFramesY;
+    //float u = uOffset + (uv.x + 0.5) * (1. / numFrames);
+    //outputTexcoord = vec2(u, uv.y + 0.5);
+    outputTexcoord = vec2((uv.x + 0.5+uOffset)/numFramesX, (uv.y + 0.5+vOffset)/numFramesY);
+    outputColorMult = colorMult;
+    vec3 basisX = viewInverse[0].xyz;
+    vec3 basisZ = viewInverse[1].xyz;
+    vec4 vertexWorld = modelMatrix * vec4(position, 1.0);
+    float size = mix(startSize, endSize, percentLife);
+    size = (percentLife < 0. || percentLife > 1.) ? 0. : size;
+    float s = sin(spinStart + spinSpeed * localTime);
+    float c = cos(spinStart + spinSpeed * localTime);
+    vec2 rotatedPoint = vec2(uv.x * c + uv.y * s, -uv.x * s + uv.y * c);
+    vec3 localPosition = vec3(basisX * rotatedPoint.x + basisZ * rotatedPoint.y) * size +
+                        velocity * localTime +
+                        acceleration * localTime * localTime +
+                        vertexWorld.xyz;
+    outputPercentLife = percentLife;
+    gl_Position = projectionMatrix * viewMatrix * vec4(localPosition, 1.);
+}
+	`
+var orientedParticleInstancedVertexShader=`
 
-	var orientedParticleInstancedVertexShader = "\nuniform mat4 worldViewProjection;\nuniform mat4 world;\nuniform vec3 worldVelocity;\nuniform vec3 worldAcceleration;\nuniform float timeRange;\nuniform float time;\nuniform float timeOffset;\nuniform float frameDuration;\nuniform float numFrames;\nattribute vec3 offset;\nattribute vec4 uvLifeTimeFrameStart;attribute float startTime;attribute vec4 velocityStartSize;attribute vec4 accelerationEndSize;attribute vec4 spinStartSpinSpeed;attribute vec4 orientation;attribute vec4 colorMult;\nvarying vec2 outputTexcoord;\nvarying float outputPercentLife;\nvarying vec4 outputColorMult;\nvoid main() {\nfloat lifeTime = uvLifeTimeFrameStart.z;\nfloat frameStart = uvLifeTimeFrameStart.w;\nvec3 velocity = (world * vec4(velocityStartSize.xyz,\n                              0.)).xyz + worldVelocity;\nfloat startSize = velocityStartSize.w;\nvec3 acceleration = (world * vec4(accelerationEndSize.xyz,\n                                  0)).xyz + worldAcceleration;\nfloat endSize = accelerationEndSize.w;\nfloat spinStart = spinStartSpinSpeed.x;\nfloat spinSpeed = spinStartSpinSpeed.y;\nfloat localTime = mod((time - timeOffset - startTime), timeRange);\nfloat percentLife = localTime / lifeTime;\nfloat frame = mod(floor(localTime / frameDuration + frameStart),\n                  numFrames);\nfloat uOffset = frame / numFrames;\nfloat u = uOffset + (uv.x + 0.5) * (1. / numFrames);\noutputTexcoord = vec2(u, uv.y + 0.5);\noutputColorMult = colorMult;\nfloat size = mix(startSize, endSize, percentLife);\nsize = (percentLife < 0. || percentLife > 1.) ? 0. : size;\nfloat s = sin(spinStart + spinSpeed * localTime);\nfloat c = cos(spinStart + spinSpeed * localTime);\nvec4 rotatedPoint = vec4((uv.x * c + uv.y * s) * size, 0.,\n                         (uv.x * s - uv.y * c) * size, 1.);\nvec3 center = velocity * localTime +\n              acceleration * localTime * localTime +\n              position +offset;\nvec4 q2 = orientation + orientation;\nvec4 qx = orientation.xxxw * q2.xyzx;\nvec4 qy = orientation.xyyw * q2.xyzy;\nvec4 qz = orientation.xxzw * q2.xxzz;\nmat4 localMatrix = mat4(\n    (1.0 - qy.y) - qz.z,\n    qx.y + qz.w,\n    qx.z - qy.w,\n    0,\n    qx.y - qz.w,\n    (1.0 - qx.x) - qz.z,\n    qy.z + qx.w,\n    0,\n    qx.z + qy.w,\n    qy.z - qx.w,\n    (1.0 - qx.x) - qy.y,\n    0,\n    center.x, center.y, center.z, 1);\nrotatedPoint = localMatrix * rotatedPoint;\noutputPercentLife = percentLife;\ngl_Position = projectionMatrix * modelViewMatrix * rotatedPoint;\n}";
-
+uniform mat4 worldViewProjection;
+uniform mat4 world;
+uniform vec3 worldVelocity;
+uniform vec3 worldAcceleration;
+uniform float timeRange;
+uniform float time;
+uniform float timeOffset;
+uniform float frameDuration;
+uniform float numFrames;
+uniform float numFramesX;uniform float numFramesY;
+attribute vec3 offset;
+attribute vec4 uvLifeTimeFrameStart;attribute float startTime;attribute vec4 velocityStartSize;attribute vec4 accelerationEndSize;attribute vec4 spinStartSpinSpeed;attribute vec4 orientation;attribute vec4 colorMult;
+varying vec2 outputTexcoord;
+varying float outputPercentLife;
+varying vec4 outputColorMult;
+void main() {
+float lifeTime = uvLifeTimeFrameStart.z;
+float frameStart = uvLifeTimeFrameStart.w;
+vec3 velocity = ( vec4(velocityStartSize.xyz,
+                              0.)).xyz + worldVelocity;
+float startSize = velocityStartSize.w;
+vec3 acceleration = ( vec4(accelerationEndSize.xyz,
+                                  0)).xyz + worldAcceleration;
+float endSize = accelerationEndSize.w;
+float spinStart = spinStartSpinSpeed.x;
+float spinSpeed = spinStartSpinSpeed.y;
+float localTime = mod((time - timeOffset - startTime), timeRange);
+float percentLife = localTime / lifeTime;
+float frame = mod(floor(localTime / frameDuration + frameStart),
+                  numFrames);
+//float uOffset = frame / numFrames;
+//float u = uOffset + (uv.x + 0.5) * (1. / numFrames);
+float uOffset = mod(frame , numFramesX);
+float vOffset = floor(frame / numFramesX);
+outputTexcoord = vec2((uv.x + 0.5+uOffset)/numFramesX, (uv.y + 0.5+vOffset)/numFramesY);
+//outputTexcoord = vec2(u, uv.y + 0.5);
+outputColorMult = colorMult;
+float size = mix(startSize, endSize, percentLife);
+size = (percentLife < 0. || percentLife > 1.) ? 0. : size;
+float s = sin(spinStart + spinSpeed * localTime);
+float c = cos(spinStart + spinSpeed * localTime);
+vec4 rotatedPoint = vec4((uv.x * c + uv.y * s) * size, 0.,
+                         (uv.x * s - uv.y * c) * size, 1.);
+vec3 center = velocity * localTime +
+              acceleration * localTime * localTime +
+              position +offset;
+vec4 q2 = orientation + orientation;
+vec4 qx = orientation.xxxw * q2.xyzx;
+vec4 qy = orientation.xyyw * q2.xyzy;
+vec4 qz = orientation.xxzw * q2.xxzz;
+mat4 localMatrix = mat4(
+    (1.0 - qy.y) - qz.z,
+    qx.y + qz.w,
+    qx.z - qy.w,
+    0,
+    qx.y - qz.w,
+    (1.0 - qx.x) - qz.z,
+    qy.z + qx.w,
+    0,
+    qx.z + qy.w,
+    qy.z - qx.w,
+    (1.0 - qx.x) - qy.y,
+    0,
+    center.x, center.y, center.z, 1);
+rotatedPoint = localMatrix * rotatedPoint;
+outputPercentLife = percentLife;
+gl_Position = projectionMatrix * modelViewMatrix * rotatedPoint;
+}
+`
 	var particleFragmentShader = "\n#ifdef GL_ES\nprecision mediump float;\n#endif\nuniform sampler2D rampSampler;\nuniform sampler2D colorSampler;\nvarying vec2 outputTexcoord;\nvarying float outputPercentLife;\nvarying vec4 outputColorMult;\nvoid main() {\n    vec4 colorMult = texture2D(rampSampler, vec2(outputPercentLife, 0.5)) * outputColorMult;\n    gl_FragColor = texture2D(colorSampler, outputTexcoord) * colorMult;\n}";
 
 	// source: https://github.com/greggman/tdl/blob/master/tdl/particles.js
@@ -183,6 +421,7 @@
 		this.timeSource_ = opt_clock;
 
 		this.setState( THREE.NormalBlending );
+		this.animationStartTime = Date.now()/1000;
 
 	}
 	ParticleEmitter.prototype = Object.create( THREE.Mesh.prototype );
@@ -309,6 +548,7 @@
 	        for (var jj = 0; jj < 1; ++jj) {
 
 	            var offset0 = LAST_IDX * jj + ( ii * LAST_IDX * 4 ) + ( firstParticleIndex * LAST_IDX * 4 );
+	            offset0 = LAST_IDX * jj + ( ii * LAST_IDX * 1 ) + ( firstParticleIndex * LAST_IDX * 1 );
 	            var offset1 = offset0 + 1;
 	            var offset2 = offset0 + 2;
 	            var offset3 = offset0 + 3;
@@ -360,6 +600,11 @@
 	    this.material.uniforms.timeRange.value = parameters.timeRange;
 	    this.material.uniforms.frameDuration.value = parameters.frameDuration;
 	    this.material.uniforms.numFrames.value = parameters.numFrames;
+	    if(parameters.numFramesX){
+	    	this.material.uniforms.numFramesX.value = parameters.numFramesX;
+	    	this.material.uniforms.numFramesY.value = parameters.numFramesY;
+	    	this.material.uniforms.numFrames.value = parameters.numFramesX*parameters.numFramesY;
+	    }
 	    this.material.uniforms.rampSampler.value = this.rampTexture_;
 	    this.material.uniforms.colorSampler.value = this.colorTexture_;
 
@@ -378,13 +623,13 @@
 				throw "can't have more than 10922 particles per emitter";
 
 			}
-
+//0, 1, 1, 1, 0, 0, 1, 0
 			var vertexBuffer = new THREE.InterleavedBuffer( new Float32Array([
 				// Front
-				0, 0, 0, 0, -0.5, -0.5, 0, 0,
-				0, 0, 0, 0, 0.5, -0.5, 0, 0,
-				0, 0, 0, 0, 0.5, 0.5, 0, 0,
-				0, 0, 0, 0, -0.5, 0.5, 0, 0
+				-0.5, 0.5, 0, 0,   0-.5, 1-.5,   0, 0,
+				0.5, 0.5, 0, 0,     1-.5, 1-.5,  0, 0,
+				-0.5, -0.5, 0, 0,    0-.5, 0-.5, 0, 0,
+				0.5, -0.5, 0, 0,    1-.5, 0-.5,  0, 0
 			]), 8);
 
 
@@ -397,15 +642,14 @@
 
 			var indices = new Uint16Array([
 
-				0, 1, 2,
-				0, 2, 3
+				0, 2, 1, 2, 3, 1
 
 			]);
 
 			this.particleBuffer_.setIndex( new THREE.BufferAttribute( indices, 1 ) );
 
 			this.numParticles_ = numParticles;
-			this.interleavedBuffer = new THREE.InstancedInterleavedBuffer( new Float32Array( numParticles * singleParticleArray_.byteLength ), LAST_IDX, 1 ).setDynamic( true );
+			this.interleavedBuffer = new THREE.InstancedInterleavedBuffer( new Float32Array( numParticles * LAST_IDX ), LAST_IDX, 1 ).setDynamic( true );
 
 			this.particleBuffer_.addAttribute( 'position', new THREE.InterleavedBufferAttribute(this.interleavedBuffer, 3, POSITION_START_TIME_IDX));
 			this.particleBuffer_.addAttribute( 'startTime', new THREE.InterleavedBufferAttribute(this.interleavedBuffer, 1, 3));
@@ -430,23 +674,26 @@
 				timeOffset: { type: 'f', value: null },
 				frameDuration: { type: 'f', value: null },
 				numFrames: { type: 'f', value: null },
+				numFramesX: { type: 'f', value: 1 },
+				numFramesY: { type: 'f', value: 1 },
 				rampSampler: { type: "t", value: this.rampTexture_ },
 				colorSampler: { type: "t", value: this.colorTexture_ }
 
 			};
 
-			var material = new THREE.ShaderMaterial({
+			var material;
+				material = new THREE.ShaderMaterial({
 
-				uniforms: uniforms,
-				vertexShader: ( parameters.billboard ) ? billboardParticleInstancedVertexShader : orientedParticleInstancedVertexShader,
-				fragmentShader: particleFragmentShader,
-				side: (this.billboard_)? THREE.DoubleSide:THREE.FrontSide,
-				blending: this.blendFunc_,
-				depthTest: true,
-				depthWrite: false,
-				transparent: true
+					uniforms: uniforms,
+					vertexShader: ( parameters.billboard ) ? billboardParticleInstancedVertexShader : orientedParticleInstancedVertexShader,
+					fragmentShader: particleFragmentShader,
+					side:  THREE.DoubleSide,
+					blending: this.blendFunc_,
+					depthTest: true,
+					depthWrite: false,
+					transparent: true
 
-			});
+				});
 
 
 			this.geometry = this.particleBuffer_;
@@ -471,8 +718,9 @@
 
 		var uniforms = this.material.uniforms;
 
-		uniforms.time.value = this.timeSource_();
-		uniforms.timeOffset.value = timeOffset;
+		uniforms.time.value = this.timeSource_()
+		
+		uniforms.timeOffset.value = this.timeOffset_? this.timeOffset_: timeOffset;
 
 	};
 
@@ -713,18 +961,19 @@
 //		camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 5000 );
 //		camera.position.set( 0, 5, 15 );
 //
+		window.particleSystem = 
 		particleSystem = new ParticleSystem( scene, camera );
 //		setupFlame( particleSystem );
-		setupNaturalGasFlame( particleSystem );
+//		setupNaturalGasFlame( particleSystem );
 //		setupSmoke( particleSystem );
 //		setupWhiteEnergy( particleSystem );
-		setupRipples( particleSystem );
+//		setupRipples( particleSystem );
 //		setupText( particleSystem );
 //		setupRain( particleSystem );
 //		setupAnim( particleSystem );
-//		setupBall( particleSystem );
+		setupBall2( particleSystem );
 //		setupCube( particleSystem );
-		setupPoof( particleSystem );
+//		setupPoof( particleSystem );
 //		setupTrail( particleSystem );
 
 //		renderer.gammaInput = true;
@@ -750,7 +999,7 @@
 			]
 		);
 		emitter.setParameters( {
-			numParticles: 20,
+			numParticles: 20/2,
 			lifeTime: 2,
 			timeRange: 2,
 			startSize: 0.5,
@@ -778,7 +1027,7 @@
 			]
 		);
 		emitter.setParameters( {
-			numParticles: 20,
+			numParticles: 20/2,
 			lifeTime: 2,
 			timeRange: 2,
 			startSize: 0.5,
@@ -804,7 +1053,7 @@
 			]
 		);
 		emitter.setParameters( {
-			numParticles: 20,
+			numParticles: 20/2,
 			lifeTime: 2,
 			timeRange: 2,
 			startSize: 1,
@@ -984,7 +1233,7 @@
 
 	function setupBall( particleSystem ) {
 
-		var texture = new THREE.TextureLoader().load( '../assets/materials/particle/ripple.png' );
+		var texture = new THREE.TextureLoader().load( '../../assets/materials/particle/ripple.png' );
 		texture.minFilter = THREE.LinearMipMapLinearFilter;
 		texture.magFilter = THREE.LinearFilter;
 
@@ -1021,6 +1270,49 @@
 				var q = new THREE.Quaternion();
 				q.setFromRotationMatrix( matrix );
 				parameters.orientation = [ q.x, q.y, q.z, q.w ];
+
+			} );
+		scene.add( emitter );
+	}
+	function setupBall2( particleSystem ) {
+
+		var texture = new THREE.TextureLoader().load( '../../assets/materials/particle/flame.png' );
+		texture.minFilter = THREE.LinearMipMapLinearFilter;
+		texture.magFilter = THREE.LinearFilter;
+
+		var emitter = particleSystem.createParticleEmitter(texture);
+		emitter.setState( THREE.AdditiveBlending );
+		emitter.setColorRamp(
+			[
+				1, 1, 1, 0.3,
+				1, 1, 1, 0
+			]
+		);
+		emitter.setParameters( {
+				numParticles: 5,
+				numFramesX: 2,numFramesY: 2,
+				frameDuration : 1,
+				lifeTime: 14,
+				startTime: 0,
+				timeRange: 14,
+				startSize: 10.50,//0.50,
+				endSize: 9,//2,
+//				spinSpeedRange: 10,
+				colorMult: [ 1, 1, 0.5, 1 ],
+				billboard: true
+			},
+			function ( index, parameters ) {
+
+				var matrix = new THREE.Matrix4();
+				var angle = Math.random() * 2 * Math.PI;
+				matrix.makeRotationY( angle );
+				var position = new THREE.Vector3( 8, 0, 0 );//3, 0, 0
+				var len = position.length();
+				position.transformDirection( matrix );
+				parameters.velocity = [ position.x * len, position.y * len, position.z * len ];
+				parameters.velocity = [ 0, 2, 0 ];
+				var acc = new THREE.Vector3( - 0.3, 0, - 0.3 ).multiply( position );
+//				parameters.acceleration = [ acc.x, acc.y, acc.z ];
 
 			} );
 		scene.add( emitter );
