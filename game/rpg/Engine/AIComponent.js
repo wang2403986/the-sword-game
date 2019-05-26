@@ -4,13 +4,13 @@
 	var nextPos = new THREE.Vector3();
 	var up=new THREE.Vector3(0, 1, 0)
 	window.AIComponent=AIComponent;
-	function AIComponent(source) {
-		this.source = 0,
+	function AIComponent(entity) {
+		this.entity = 0,
 		this.autoMove = false,
 		this.state = PS_FREE;
-		if (source) {
-			this.source = source;
-			source.aiComponent=this;
+		if (entity) {
+			this.entity = entity;
+			entity.aiComponent=this;
 		}
 		this.nextPos=nextPos;
 		this.findPathPosition = new THREE.Vector3(Infinity,0,0);
@@ -24,12 +24,13 @@
 		this.rotateElapse = -1;
 	}
 	AIComponent.prototype.updateAnimation= function(fElapse) {
-		var mixer=this.source.model.mixer;
+		var model=this.entity.model;
+		var mixer=model.mixer;
 		var _actions= mixer._actions, i=0, len = mixer._nActiveActions, e;
 		var nActions = len - 1;
 		if(nActions>0){
 			var riseSpeed = fElapse * 3;
-			var current = mixer.currentAction;
+			var current = model.currentAction;
 			if(!current) return;
 			var w =current.weight + riseSpeed;
 			current.weight= Math.min(w,1);
@@ -48,7 +49,7 @@
 		}
 	}
 	AIComponent.prototype.update= function(fElapse) {
-	    if (!this.source) return;
+	    if (!this.entity) return;
 	    //Auto Find Path
 	    this.isAutoFindPath=false;
 	    if(this.autoFindPathMax>now && !this.findPathInProgress) {
@@ -80,8 +81,8 @@
 		this.attackToMode = 0;
 		this.stopSkill();
 		this.stopAttack();
-		var distance=distanceToSquared(this.source.pos, target.pos);
-		var attackRange = target.range+ this.source.attackRange;
+		var distance=distanceToSquared(this.entity.pos, target.pos);
+		var attackRange = target.range+ this.entity.attackRange;
 		if(distance<=attackRange*attackRange) {// do startAttack
 			this.attackTarget=target;
 			this.isLockTarget=true;
@@ -97,7 +98,7 @@
 		this.attackToMode = 0;
 		this.stopSkill();
 		this.stopAttack();
-		var distance=skillTarget.pos.distanceToSquared(this.source.pos);
+		var distance=skillTarget.pos.distanceToSquared(this.entity.pos);
 		var attackRange = skillTarget.range+ 10;
 		if(distance<=attackRange*attackRange){// do skill
 			this.skillTarget=skillTarget;
@@ -118,7 +119,7 @@
 		this.findPathDiscarded = true;//stop findPath
 		this.stopAttack()//stop Attack
 		this.setState(PS_SKILL);
-		this.source.model.mixer.currentAction.time =0;
+		this.entity.model.currentAction.time =0;
 		this.hasHit=false;
 	}
 	AIComponent.prototype.stopSkill=function() {
@@ -137,22 +138,22 @@
 	}
 	AIComponent.prototype.startAttack=function() {
 		console.log('startAttack')
-		var source=this.source;
+		var entity=this.entity;
 		this.autoMove = false;//stop move state
 		this.findPathDiscarded = true;//stop findPath
-		if(this.isLockTarget) this.destPosition.copy(this.stopPosition.copy(source.pos));
+		if(this.isLockTarget) this.destPosition.copy(this.stopPosition.copy(entity.pos));
 		this.setState(PS_ATTACK);
-		var time = source.model.mixer.currentAction.time;
+		var time = entity.model.currentAction.time;
 		this.lastActionTime = time;
-		this.hasHit= time > 0 && time >source.attackHitTime;
+		this.hasHit= time > 0 && time >entity.attackHitTime;
 		var aiComponent=this.attackTarget.aiComponent;
-		if(aiComponent&& !aiComponent.attacker) aiComponent.attacker=source;
+		if(aiComponent&& !aiComponent.attacker) aiComponent.attacker=entity;
 	}
 	AIComponent.prototype.stopAttack=function() {
 		if(!this.attackTarget) return;
 		console.log('stopAttack')
 		var aiComponent=this.attackTarget.aiComponent;
-		if(aiComponent && aiComponent.attacker===this.source) aiComponent.attacker=false;
+		if(aiComponent && aiComponent.attacker===this.entity) aiComponent.attacker=false;
 		this.attackTarget=null;
 		this.isLockTarget=false;
 		this.autoMove = false;//stop move state
@@ -163,12 +164,12 @@
 		this.setState(PS_FREE);
 	}
 	AIComponent.prototype.updateSkillState = function() {
-		var source=this.source;
-		var faceDir = v3_4.subVectors(this.skillTarget.pos , source.pos);
+		var entity=this.entity;
+		var faceDir = v3_4.subVectors(this.skillTarget.pos , entity.pos);
 	    this.faceToDir(faceDir);
-		var time=source.model.mixer.currentAction.time;
+		var time=entity.model.currentAction.time;
 	    if(this.backOrientation && !this.hasHit) {
-	    	source.model.mixer.currentAction.time = time = 0;
+	    	entity.model.currentAction.time = time = 0;
 	    	this.skillStartTime=now;
 	    }
 	    if (!this.hasHit && now- this.skillStartTime>10){
@@ -187,36 +188,36 @@
 			this.findPath(null, autoFindPathType);
 		}
 		var auto = !this.isLockTarget;
-		var attackTarget=this.attackTarget, source=this.source;
+		var attackTarget=this.attackTarget, entity=this.entity;
 		var aiComponent=attackTarget.aiComponent;
-		if(aiComponent&& !aiComponent.attacker) aiComponent.attacker=source;
+		if(aiComponent&& !aiComponent.attacker) aiComponent.attacker=entity;
 
-		var faceDir = v3_4.subVectors(this.attackTarget.pos , source.pos);
+		var faceDir = v3_4.subVectors(this.attackTarget.pos , entity.pos);
 	    this.faceToDir(faceDir);
-	    var time=source.model.mixer.currentAction.time;
+	    var time=entity.model.currentAction.time;
 	    if(this.backOrientation &&(!this.hasHit)) {
-	    	source.model.mixer.currentAction.time = time = this.lastActionTime;
+	    	entity.model.currentAction.time = time = this.lastActionTime;
 	    }
 
-	    if (!this.hasHit&& (time >source.attackHitTime || this.lastActionTime>time)) {
+	    if (!this.hasHit&& (time >entity.attackHitTime || this.lastActionTime>time)) {
 	    	this.hasHit = true;
-			if (source.rangedAttack){
-				new Projectile(source, attackTarget);
+			if (entity.rangedAttack){
+				new Projectile(entity, attackTarget);
 			} else{
-				if(source.audio) {
-					if(source.audio.isPlaying) source.audio.stop();
-					source.audio.play();
+				if(entity.audio) {
+					if(entity.audio.isPlaying) entity.audio.stop();
+					entity.audio.play();
 				}
-	    		this.attackTarget.onHit && this.attackTarget.onHit(source);
+	    		this.attackTarget.onHit && this.attackTarget.onHit(entity);
 			}
 	    }
 	    if (this.lastActionTime>time) { // at each animation finished
 	    	this.hasHit = false;
-	    	var chaseDistance=source.pos.distanceToSquared(this.stopPosition);
-			var distance=distanceToSquared(source.pos, attackTarget.pos);
-			var chaseRange = attackTarget.range+ source.chaseRange;
-			var acquisitionRange = attackTarget.range+ source.acquisitionRange;
-			var attackRange = attackTarget.range+ source.attackRange + 3;
+	    	var chaseDistance=entity.pos.distanceToSquared(this.stopPosition);
+			var distance=distanceToSquared(entity.pos, attackTarget.pos);
+			var chaseRange = attackTarget.range+ entity.chaseRange;
+			var acquisitionRange = attackTarget.range+ entity.acquisitionRange;
+			var attackRange = attackTarget.range+ entity.attackRange + 3;
 	    	if(distance>acquisitionRange*acquisitionRange){
 				//target outside acquisitionRange, move back
 				this.stopAttack();
@@ -235,18 +236,18 @@
 	};
 	
 	AIComponent.prototype.updateMoveState = function() {
-		var source=this.source;
+		var entity=this.entity;
 		var target= this.skillTarget || this.attackTarget, auto = !this.isLockTarget;
 		if (this.skillTarget) { // have casted a skill
-			var distance=target.pos.distanceToSquared(source.pos);
+			var distance=target.pos.distanceToSquared(entity.pos);
 			var attackRange = target.range+ 10;
 			if(distance<=attackRange*attackRange){// target is inside spell range, do skill
 				this.startSkill()
 			}
 		} else if(this.attackTarget) {
-			var distance=distanceToSquared(source.pos,target.pos);
-			var acquisitionRange = target.range+ source.acquisitionRange;
-			var attackRange = target.range+ source.attackRange;
+			var distance=distanceToSquared(entity.pos,target.pos);
+			var acquisitionRange = target.range+ entity.acquisitionRange;
+			var attackRange = target.range+ entity.attackRange;
 			if(auto&&distance>acquisitionRange*acquisitionRange){
 				// target is outside acquisition range, stop Chase
 				this.stopChase();
@@ -254,9 +255,9 @@
 			}else if(distance<=attackRange*attackRange){
 				// target is inside attack range, do attack
 				this.startAttack()
-			}else if(auto&&source.pos.distanceToSquared(this.stopPosition)>source.chaseRange*source.chaseRange){
+			}else if(auto&&entity.pos.distanceToSquared(this.stopPosition)>entity.chaseRange*entity.chaseRange){
 				// target is outside max chase range, stop chasing
-				this.stopChase(); //this.attackStartPos.equals
+				this.stopChase();
 				this.findPath(this.destPosition);
 			}else if(target.isDead){
 				// target is Dead, stop chasing
@@ -265,25 +266,25 @@
 				var findPos=this.findPathPosition, pos = target.pos; findPos.x=pos.x, findPos.z=pos.z;
 			}
 		} else if(this.attackToMode){
-			if(!(this.findPathInProgress&&this.findPathType===autoAttackFindPathType)&&source.attackTargets.length)
+			if(!(this.findPathInProgress&&this.findPathType===autoAttackFindPathType)&&entity.attackTargets.length)
 				this.findPath(null, autoAttackFindPathType);
 		}
 	};
 	AIComponent.prototype.updateFreeState = function() {
 		if(this.destPosition.x===Infinity)
-			this.stopPosition.copy(this.destPosition.copy(this.source.pos));
-		var source=this.source;
+			this.stopPosition.copy(this.destPosition.copy(this.entity.pos));
+		var entity=this.entity;
 		if (this.skillTarget) { // have casted a skill
-			var distance=distanceToSquared(this.skillTarget.pos,source.pos);
+			var distance=distanceToSquared(this.skillTarget.pos,entity.pos);
 			var attackRange = this.skillTarget.range+ source.attackRange;
 			if(distance<=attackRange*attackRange)// do start Skill
 				this.startSkill();
 		} else if(this.attackTarget) {
-			var distance=distanceToSquared(this.attackTarget.pos,source.pos);
-			var attackRange = this.attackTarget.range+ source.attackRange;
+			var distance=distanceToSquared(this.attackTarget.pos,entity.pos);
+			var attackRange = this.attackTarget.range+ entity.attackRange;
 			if(distance<=attackRange*attackRange)// do start Attack
 				this.startAttack();
-		} else if(!this.findPathInProgress && this.source.attackTargets.length) {
+		} else if(!this.findPathInProgress && entity.attackTargets.length) {
 			this.findPath(null, autoAttackFindPathType);
 		} else if (!this.findPathInProgress && this.isAutoFindPath) {//FindPath for each time interval
 			this.findPath(null, autoFindPathType);
@@ -303,12 +304,12 @@
 		}
 		if (!this.findPathInProgress) {
 			this.findPathInProgress=true
-			iPathFinder.findPath(this.source, type);
+			iPathFinder.findPath(this.entity, type);
 		}
 	}
 	AIComponent.prototype.updateHeight=function(elapse) {
-		if(this.source===undefined) return;
-		var position=this.source.pos;
+		if(this.entity===undefined) return;
+		var position=this.entity.pos;
 //	    if (position.x<0) position.x=0;
 //	    if (position.z<0) position.z=0;
 	    var pMap = getMap();
@@ -332,11 +333,11 @@
 			this.rotateElapse +=  fElapse*5;//5
 			var t=this.rotateElapse / this.rotateTotal;
 			if(t < 1){
-				var quaternion = this.source.model.quaternion;
+				var quaternion = this.entity.model.quaternion;
 				THREE.Quaternion.slerp( this.rotStart, this.rotTarget, quaternion, t);
 			}else {
 				this.rotateElapse= -1;
-				if(t >= 1) this.source.model.quaternion.copy(this.rotTarget);
+				if(t >= 1) this.entity.model.quaternion.copy(this.rotTarget);
 			}
 		}
 	}
@@ -351,17 +352,17 @@
 	}
 	var quat1=new THREE.Quaternion(); var v_lookAt=new THREE.Vector3();
 	AIComponent.prototype.faceToDir=function(dir) {
-		if (!this.source)
+		if (!this.entity)
 			return;
 		dir.y=0;
-		var lookAt =  v_lookAt.copy(dir), m_pSource=this.source;
-		var pos = m_pSource.model.position;
+		var lookAt =  v_lookAt.copy(dir), entity=this.entity;
+		var pos = entity.model.position;
 		pos.y=0;
 		lookAt.add(pos);
-		this.rotStart.copy(m_pSource.model.quaternion);
-	    m_pSource.model.lookAt(lookAt);
-	    this.rotTarget.copy(m_pSource.model.quaternion);
-	    m_pSource.model.quaternion.copy(this.rotStart);
+		this.rotStart.copy(entity.model.quaternion);
+		entity.model.lookAt(lookAt);
+	    this.rotTarget.copy(entity.model.quaternion);
+	    entity.model.quaternion.copy(this.rotStart);
 	    lookAt.set(0,0,1).applyQuaternion(this.rotStart);
 	    
 	    var angle = lookAt.angleTo(dir);
@@ -423,7 +424,7 @@
 //			}
 //			if(moveX!==undefined) this.moveToPosition.set(moveX,0,moveY);
 //		}
-	    this.oldPosition.copy(this.source.pos);
+	    this.oldPosition.copy(this.entity.pos);
 //	    iDebugData.push(this.moveToPosition.clone());// TODO
 
 	    var dx = this.moveToPosition.x-this.oldPosition.x;
@@ -439,7 +440,7 @@
 	    var distance = Math.sqrt(dx*dx+dy*dy);
 	    if(distance<=0.001)
 	    	return;
-	    this.stepSpeed= this.source.speed * this.steps/ distance;
+	    this.stepSpeed= this.entity.speed * this.steps/ distance;
 	    this.dx=dx / this.steps;
 	    this.dy=dy / this.steps;
 	    
@@ -476,7 +477,7 @@
         		if(aiComponent&&aiComponent.autoMove&&!aiComponent.isWaiting) this.setWaitTime();
     			this.needsFindPath=true;
         	} else {
-        		this.source.pos.set(this.nextPos.x, 0, this.nextPos.z);
+        		this.entity.pos.set(this.nextPos.x, 0, this.nextPos.z);
         		this.moveToElapse = moveToElapse;
         	}
         }
@@ -502,20 +503,20 @@
 		return false;
 	};
 	AIComponent.prototype._moveToNextPath= function(fElapse) {
-		var source=this.source, m_nextPos=this.nextPos, pos=source.pos;
+		var entity=this.entity, nextPos=this.nextPos, pos=entity.pos;
 		if(this.stepByX) {
 			fElapse -= Math.abs(pos.x-this.moveToPosition.x)/this.stepSpeed;
 		}else
 			fElapse -= Math.abs(pos.z-this.moveToPosition.z)/this.stepSpeed;
 		if(fElapse<0)fElapse=0;
 		
-		source.pos = m_nextPos.copy(this.moveToPosition);
+		entity.pos = nextPos.copy(this.moveToPosition);
 		this.moveForward();
-		source.pos = pos;
+		entity.pos = pos;
 		
 		this.calculateNextPos(fElapse);
 		if(!this.getCollisionObject(0)){
-			pos.set(m_nextPos.x, 0, m_nextPos.z);
+			pos.set(nextPos.x, 0, nextPos.z);
     		this.moveToElapse = fElapse;
 		} else this.needsFindPath=true;
 	};
@@ -536,7 +537,7 @@
 		}
 	};
 	AIComponent.prototype.getCollisionObject= function(preferMovingUnit) {
-		return iPathFinder.getCollisionObject(this.source, preferMovingUnit);
+		return iPathFinder.getCollisionObject(this.entity, preferMovingUnit);
 	};
 
 	AIComponent.prototype.setWaitTime=function(time) {
@@ -558,19 +559,17 @@
 	    if (this.skillTarget || this.moveToTarget){
 			if(this.findPathState) {
 				this.skillTarget=false;
-				this.stopPosition.copy(this.source.pos);
+				this.stopPosition.copy(this.entity.pos);
 			}
 		}else if(this.attackTarget){
 			if (this.findPathState){
-				if (this.isLockTarget) this.stopPosition.copy(this.source.pos);
+				if (this.isLockTarget) this.stopPosition.copy(this.entity.pos);
 				this.attackTarget=this.isLockTarget=false;
 			}
 		} else 
-			this.stopPosition.copy(this.source.pos);
+			this.stopPosition.copy(this.entity.pos);
 	    this.onMoveToFinished();
 	}
-	
-	AIComponent.prototype.getState=function() { return this.state; };
 	
 	AIComponent.prototype.setState=function( state) { 
 	    if (this.state === state) return ;
@@ -579,12 +578,12 @@
 	    this.onStateChange(oldState);
 	}
 	AIComponent.prototype.onStateChange=function(oldState) {
-		if (!this.source) return;
-		var model=this.source.model;
+		if (!this.entity) return;
+		var model=this.entity.model;
 		var mixer= model.mixer;
-		mixer.currentAction = model.actions[this.state];
-		if(mixer.currentAction && !mixer.currentAction.isScheduled()){
-			mixer.currentAction.play();
+		model.currentAction = model.actions[this.state];
+		if(model.currentAction && !model.currentAction.isScheduled()){
+			model.currentAction.play();
 		}
 	}
 })();

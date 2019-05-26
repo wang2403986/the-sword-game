@@ -125,7 +125,7 @@
 			
 			if(aiComponent.findPathDiscarded) return;
 			if (aiComponent.findPathType === 2) {// auto find attack target
-				var arr=aiComponent.source.attackTargets, tmpPos=aiComponent.source.pos;
+				var arr=aiComponent.entity.attackTargets, tmpPos=aiComponent.entity.pos;
 				array2.length=0;
 				for(var i=0;i<arr.length;i++){
 					if(!arr[i].isDead){
@@ -153,10 +153,10 @@
 			    	aiComponent.findPathPosition.copy(arr[f32Array[0]].pos);
 			    	aiComponent.isLockTarget=false;
 			    	
-			    	var chaseRange= aiComponent.source.acquisitionRange*(2*Math.random()+1.7);
-			    	aiComponent.source.chaseRange = chaseRange;
+			    	var chaseRange= aiComponent.entity.acquisitionRange*(2*Math.random()+1.7);
+			    	aiComponent.entity.chaseRange = chaseRange;
 			    	
-			    	aiComponent.attackStartPos.copy(aiComponent.source.pos);
+			    	aiComponent.attackStartPos.copy(aiComponent.entity.pos);
 			    	buildPath(pathSize, i32, unit0)
 					aiComponent.isFullPath=true;
 					if(aiComponent.path.length>2){

@@ -73,10 +73,12 @@
 		for (var j=0; j<g_gameUnits.length;j++) {
 			var unit = g_gameUnits[j];
 			var radius=unit.radius;
-			var select =isPointInTriangle(unit.pos,rectPositions[0],rectPositions[1],rectPositions[2])
-			 ||isPointInTriangle(unit.pos,rectPositions[0],rectPositions[2],rectPositions[3]);
-			unit.model.selectionCircle.visible = select;
-			if(select)selections.push(unit);
+			if(unit.model.selectionCircle){
+				var select =isPointInTriangle(unit.pos,rectPositions[0],rectPositions[1],rectPositions[2])
+				 ||isPointInTriangle(unit.pos,rectPositions[0],rectPositions[2],rectPositions[3]);
+				unit.model.selectionCircle.visible = select;
+				if(select)selections.push(unit);
+			}
 		}
 	}
 	

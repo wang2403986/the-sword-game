@@ -192,7 +192,7 @@ function BurstEffect(position, EffectTime) {
     	}
     	scene.add( shockwave );
     	shockwave.position.copy(position);
-    	shockwave.position.y=1+position.height;
+    	shockwave.position.y= 2 + position.height;
         addUpdater(this);
     }
     this.start();

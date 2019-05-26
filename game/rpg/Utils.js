@@ -84,121 +84,131 @@ function removeTeamUnit(unit, teamId, playerId) {
 	var team=g_gameTeams.find(function(e){return  e.length&& e[0].teamId===teamId}), player;
 	if(team) player = team.find(function(e){return  e.length&& e[0].playerId===playerId});
 	if(player)  player.remove(unit);
-	unit.teamId= -1, unit.playerId= -1;
+	unit.teamId= unit.playerId= undefined;
 	g_gameUnits.remove(unit);
 }
 
-/** 获得Viewport大小。*/
-function getViewport(e) {
-	 if(e){e.width=innerWidth;e.height=innerHeight;return e;}
-	 else return {width: innerWidth, height:innerHeight};
-}
-
 //annie = new TextureAnimator( runnerTexture, 10, 1, 10, 75 ); // texture, #horiz, #vert, #total, duration.
-function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
-{	
-	// note: texture passed by reference, will be updated by the update function.
-		
-	this.tilesHorizontal = tilesHoriz;
-	this.tilesVertical = tilesVert;
-	// how many images does this spritesheet contain?
-	//  usually equals tilesHoriz * tilesVert, but not necessarily,
-	//  if there at blank tiles at the bottom of the spritesheet. 
-	this.numberOfTiles = numTiles;
-	texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
-	texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
+//function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
+//{	
+//	// note: texture passed by reference, will be updated by the update function.
+//		
+//	this.tilesHorizontal = tilesHoriz;
+//	this.tilesVertical = tilesVert;
+//	// how many images does this spritesheet contain?
+//	//  usually equals tilesHoriz * tilesVert, but not necessarily,
+//	//  if there at blank tiles at the bottom of the spritesheet. 
+//	this.numberOfTiles = numTiles;
+//	texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
+//	texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
+//
+//	// how long should each image be displayed?
+//	this.tileDisplayDuration = tileDispDuration;
+//
+//	// how long has the current image been displayed?
+//	this.currentDisplayTime = 0;
+//
+//	// which image is currently being displayed?
+//	this.currentTile = 0;
+//		
+//	this.update = function( milliSec )
+//	{
+//		//milliSec=1000 * milliSec
+//		this.currentDisplayTime += milliSec;
+//		while (this.currentDisplayTime > this.tileDisplayDuration)
+//		{
+//			this.currentDisplayTime -= this.tileDisplayDuration;
+//			this.currentTile++;
+//			if (this.currentTile == this.numberOfTiles)
+//				this.currentTile = 0;
+//			var currentColumn = this.currentTile % this.tilesHorizontal;
+//			texture.offset.x = currentColumn / this.tilesHorizontal;
+//			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
+//			texture.offset.y = currentRow / this.tilesVertical;
+//		}
+//	};
+//}
 
-	// how long should each image be displayed?
-	this.tileDisplayDuration = tileDispDuration;
-
-	// how long has the current image been displayed?
-	this.currentDisplayTime = 0;
-
-	// which image is currently being displayed?
-	this.currentTile = 0;
-		
-	this.update = function( milliSec )
-	{
-		//milliSec=1000 * milliSec
-		this.currentDisplayTime += milliSec;
-		while (this.currentDisplayTime > this.tileDisplayDuration)
-		{
-			this.currentDisplayTime -= this.tileDisplayDuration;
-			this.currentTile++;
-			if (this.currentTile == this.numberOfTiles)
-				this.currentTile = 0;
-			var currentColumn = this.currentTile % this.tilesHorizontal;
-			texture.offset.x = currentColumn / this.tilesHorizontal;
-			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
-			texture.offset.y = currentRow / this.tilesVertical;
-		}
-	};
-}
-function addAnimationMixer(object) {
-	var mixer=object.mixer = new THREE.AnimationMixer( object );
-	mixers.push( object.mixer );
-	var actions =object.actions = {};
-	if(object.animations)
-		object.animations.forEach(function (clip){
-			var action = mixer.clipAction( clip );
-			action.weight = 0;
-			actions[clip.name] = action;
-		})
-}
-function cloneFbx(fbx) {
-    var clone = fbx.clone(true);
-    clone.animations = fbx.animations;
-    var skinnedMeshes = {};
-
-    fbx.traverse(function (node) {
-        if (node.isSkinnedMesh) {
-            skinnedMeshes[node.name] = node;
-        }
-    });
-
-    var cloneBones = {};
-    var cloneSkinnedMeshes = {};
-
-    clone.traverse(function (node) {
-        if (node.isBone) {
-            cloneBones[node.name] = node;
-        }
-
-        if (node.isSkinnedMesh) {
-            cloneSkinnedMeshes[node.name] = node;
-        }
-    });
-
-    for (var name in skinnedMeshes) {
-        var _clone$skeleton$bones;
-
-        var skinnedMesh = skinnedMeshes[name];
-        var skeleton = skinnedMesh.skeleton;
-        var cloneSkinnedMesh = cloneSkinnedMeshes[name];
-
-        var orderedCloneBones = [];
-
-        for (var i = 0; i < skeleton.bones.length; i++) {
-            var cloneBone = cloneBones[skeleton.bones[i].name];
-            orderedCloneBones.push(cloneBone);
-        }
-        cloneSkinnedMesh.bind(new THREE.Skeleton(orderedCloneBones));
-        //cloneSkinnedMesh.bind(new THREE.Skeleton(orderedCloneBones, skeleton.boneInverses), cloneSkinnedMesh.matrixWorld);
-
-        // For animation to work correctly:
-        //clone.skeleton.bones.push(cloneSkinnedMesh);
-        //(_clone$skeleton$bones = clone.skeleton.bones).push.apply(_clone$skeleton$bones, orderedCloneBones);
-    }
-    clone.playAction = fbx.playAction;
-    if(fbx.selectionCircleId){
-    	clone.selectionCircleId = fbx.selectionCircleId;
-    	clone.selectionCircle=clone.children[clone.selectionCircleId];
-    	clone.selectionCircle.onBeforeRender = fbx.selectionCircle.onBeforeRender;
-    }
-    if(fbx.boundingBoxGeometry) clone.boundingBoxGeometry=fbx.boundingBoxGeometry;
-    return clone;
-};
 (function() {
+	function addAnimationMixer(object) {
+		if(object.animations && object.animations.length){
+			var mixer=object.mixer = new THREE.AnimationMixer( object );
+//			mixers.push( object.mixer );
+			var actions =object.actions = {};
+			object.animations.forEach(function (clip){
+				var action = mixer.clipAction( clip );
+				action.weight = 0;
+				actions[clip.name] = action;
+			})
+		}
+	}
+
+	var points = [], length = 40, circle = 2.2;
+	for (var i = 0; i <= length; i++) {
+	 points.push(new THREE.Vector3(-circle * Math.cos(Math.PI * 2 * i / length), 0, circle * Math.sin(Math.PI * 2 * i / length) ) );
+	}
+	var selectionGeometry = new THREE.BufferGeometry().setFromPoints( points );delete points;
+	var selectionMaterial = new THREE.LineBasicMaterial({ color: 0xff0000,linewidth: 2, depthTest: false,depthWrite:false });
+
+	window.cloneFbx =function(fbx) {
+	    var clone = fbx.clone(true);
+	    clone.animations = fbx.animations;
+	    var skinnedMeshes = {};
+
+	    fbx.traverse(function (node) {
+	        if (node.isSkinnedMesh) {
+	            skinnedMeshes[node.name] = node;
+	        }
+	    });
+
+	    var cloneBones = {};
+	    var cloneSkinnedMeshes = {};
+
+	    clone.traverse(function (node) {
+	        if (node.isBone) {
+	            cloneBones[node.name] = node;
+	        }
+
+	        if (node.isSkinnedMesh) {
+	            cloneSkinnedMeshes[node.name] = node;
+	        }
+	    });
+
+	    for (var name in skinnedMeshes) {
+	        var _clone$skeleton$bones;
+
+	        var skinnedMesh = skinnedMeshes[name];
+	        var skeleton = skinnedMesh.skeleton;
+	        var cloneSkinnedMesh = cloneSkinnedMeshes[name];
+
+	        var orderedCloneBones = [];
+
+	        for (var i = 0; i < skeleton.bones.length; i++) {
+	            var cloneBone = cloneBones[skeleton.bones[i].name];
+	            orderedCloneBones.push(cloneBone);
+	        }
+	        cloneSkinnedMesh.bind(new THREE.Skeleton(orderedCloneBones));
+	        //cloneSkinnedMesh.bind(new THREE.Skeleton(orderedCloneBones, skeleton.boneInverses), cloneSkinnedMesh.matrixWorld);
+
+	        // For animation to work correctly:
+	        //clone.skeleton.bones.push(cloneSkinnedMesh);
+	        //(_clone$skeleton$bones = clone.skeleton.bones).push.apply(_clone$skeleton$bones, orderedCloneBones);
+	    }
+	    clone.playAction = fbx.playAction;
+	    if(fbx.selectionCircle){
+	    	clone.selectionCircle = new THREE.Line(selectionGeometry, selectionMaterial);
+	    	clone.selectionCircle.visible=false;
+	    	clone.selectionCircle.model = clone;
+	    	clone.selectionCircle.scale.copy(fbx.selectionCircle.scale);
+	    	clone.selectionCircle.onBeforeRender = fbx.selectionCircle.onBeforeRender;
+	    }
+	    if(fbx.boundingBoxGeometry) clone.boundingBoxGeometry=fbx.boundingBoxGeometry;
+	    if(fbx.animations){
+	    	addAnimationMixer(clone);
+	    }
+	    return clone;
+	};
+
 	var inverseMatrix = new THREE.Matrix4(), ray = new THREE.Ray(), sphere = new THREE.Sphere(), intersects=[];
 	THREE.Raycaster.prototype.intersectBoxs =function (objects) {
 		intersects.length=0;
@@ -251,15 +261,9 @@ function cloneFbx(fbx) {
 		if(clampWhenFinished) action.clampWhenFinished = clampWhenFinished;
 		action.play();
 		action.weight=1;
-		this.mixer.currentAction = action;
+		this.currentAction = action;
 	}
 	var loader = new THREE.FBXLoader(), loadedModels={};
-	var points = [], length = 40, circle = 18;
-	for (var i = 0; i <= length; i++) {
-	 points.push(new THREE.Vector3(-circle * Math.cos(Math.PI * 2 * i / length), 0, circle * Math.sin(Math.PI * 2 * i / length) ) );
-	}
-	var selectionGeometry = new THREE.BufferGeometry().setFromPoints( points );delete points;
-	var selectionMaterial = new THREE.LineBasicMaterial({ color: 0xff0000,linewidth: 2 });
 	window.loadModel = function(model, callback) {
 		var anims=model.animationsFiles;
 		var keys=Object.keys(anims);
@@ -284,7 +288,6 @@ function cloneFbx(fbx) {
 			});
 		}
 		function onLoaded( object ) {
-			if(model.selectable!==undefined) object.selectable=model.selectable;
 			if(model.name) loadedModels[model.name] = object;
 			if(object.animations&& object.animations.length){
 				initMeshAnimation(object);
@@ -314,18 +317,19 @@ function cloneFbx(fbx) {
 				for(var e=1;e<arr.length;e+=3) {
 					arr[e]+= model.boundingBox.y/2;
 				}
+			}
+			if(model.selectable){
 				object.selectionCircle = new THREE.Line(selectionGeometry, selectionMaterial);
-				object.selectionCircle.position.set(0,6,0)
 				object.selectionCircle.visible=false;
-				object.selectionCircleId=object.children.length;
-					object.add(object.selectionCircle);
+				object.selectionCircle.model = object;
+				object.selectionCircle.onBeforeRender = onBeforeRender;
 			}
 			initializeModel(object)
 			if(callback) callback(object);
 		}
 		function onBeforeRender(){
-			if(this.parent.entity )
-				if(this.parent.entity.teamId===1)
+			if(this.model.entity )
+				if(this.model.entity.teamId===1)
 					this.material.color.setRGB( 0,1,0);
 				else this.material.color.setRGB( 1,0,0);
 		}
@@ -333,11 +337,13 @@ function cloneFbx(fbx) {
 			if(model.scale) object.scale.set(model.scale,model.scale,model.scale);
 			if(model.position) object.position.set(model.position.x,model.position.y,model.position.z);
 			if(model.rotation) object.rotation.set(model.rotation.x,model.rotation.y,model.rotation.z);
-			if(model.boundingBox) {
-				object.selectionCircle.onBeforeRender = onBeforeRender;
+			if(object.selectionCircle) {
+				var scale = model.selectionScale;
+				if(scale) {
+					object.selectionCircle.scale.set(scale,scale,scale)
+				}
 			}
-			if(model.selectionScale)
-				object.selectionCircle.scale.set(model.selectionScale,model.selectionScale,model.selectionScale)
+			addAnimationMixer( object );
 		}
 	}
 })();

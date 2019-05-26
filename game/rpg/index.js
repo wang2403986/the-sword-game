@@ -84,6 +84,24 @@ function animate() {
 	for(var i=0;i<updateTaskList.length;i++) {
 		updateTaskList[i].update(fElapse);
 	}
+	if(window.selectionCircles && window.g_gameUnits){
+		selectionCircles.children.length=0;
+		terrin.renderOrder = -2;
+		for (var i=0; i<g_gameUnits.length;i++) {
+			var unit = g_gameUnits[i];
+			var model=unit.model;
+			var circle=model.selectionCircle;
+			if(model.glory){
+				selectionCircles.add(model.glory);
+				model.glory.position.set(unit.pos.x,unit.pos.y+.6,unit.pos.z);
+			}
+			if(circle&&circle.visible){
+				selectionCircles.add(circle);
+				circle.renderOrder = -1;
+				circle.position.set(unit.pos.x,unit.pos.y,unit.pos.z);
+			}
+		}
+	}
 	if(camera) {
 		camera.update && camera.update();
 		renderer.render( scene, camera );

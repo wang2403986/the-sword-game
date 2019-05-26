@@ -11,6 +11,7 @@
 				},
 				boundingBox:{x:20, y:20, z:20},
 				topBoard:{height:40, scale:{x:30, y:3, z:1}},
+				selectable:true,
 				scale:.1//.16, r:2
 		};
 		loadModel(model, onLoaded);
@@ -26,7 +27,8 @@
 				boundingBox:{x:40, y:100, z:40},
 				position:{x:193, y: 0, z: 333},
 				topBoard:{height:100, scale:{x:80, y:8, z:1}},
-				selectionScale:4,
+				selectionScale:1.7,
+				selectable:true,
 				radius: 1 , scale:.05//
 		};
 		loadModel(model2, onLoaded2);
@@ -38,24 +40,20 @@
 			var i = 0, original=object;//55
 		    for(i=0;i<15;i++) {
 		    	object=cloneFbx(original);
-		    	var bbox = { geometry:original.boundingBoxGeometry, matrixWorld:object.matrixWorld };
-				bbox._model=object;
-				object.bbox=bbox;
-				raycaster_models.push(bbox);
-		    	
-				addAnimationMixer( object );
-				object.actions.attack.timeScale=.8
-
+				object.actions.attack.timeScale=.8;
 	    		object.playAction('free');
 	    		var j = i>=15?i%15:i;
 		    	object.position.copy(team1Positions[j])//rand(20,480),0, rand(20,480)
-		    	scene.add( object );
-		    	new MonsterEntity().setModel(object).setRadius(1.5);
-		    	object.entity.attackHitTime=0.36666667461395264 -.08;
-		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
-		    	new AIComponent(object.entity);
-		    	addUpdater(object.entity);
-		    	addTeamUnit(object.entity, 1, 1);
+		    	var entity = new iEntity();
+		    	entity.setModel(object)
+		    	entity.setRadius(1.5);
+		    	entity.speed=25/1.5;
+		    	entity.attackHitTime=0.36666667461395264 -.08;
+		    	entity.topboard=new TopBoard(entity, model.topBoard);
+		    	entity.addAIComponent();
+				entity.addToTeam(1, 1);
+				entity.addUpdater();
+				entity.addToScene();
 //		    	object.entity.audio=new THREE.PositionalAudio( audioListener );
 //		    	object.add(object.entity.audio);
 //		    	loadAudio( '../assets/audio/WoodMediumBashFlesh3.wav', (function(object){return function ( buffer ) {
@@ -69,23 +67,19 @@
 			var i = 0, original=object;//55
 		    for(i=0;i<15;i++) {
 		    	object=cloneFbx(original);
-		    	var bbox = { geometry:original.boundingBoxGeometry, matrixWorld:object.matrixWorld };
-				bbox._model=object;
-				object.bbox=bbox;
-				raycaster_models.push(bbox);
-		    	
-				addAnimationMixer( object );
 				object.actions.attack.timeScale=.8
 	    		object.playAction('free');
 	    		var j = i>=15?i%15:i;
 		    	object.position.copy(team2Positions[j])//rand(20,480),0, rand(20,480)
-		    	scene.add( object );
-		    	new MonsterEntity().setModel(object).setRadius(1.5);
-		    	object.entity.attackHitTime=0.36666667461395264 -.08;
-		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model.topBoard);
-		    	new AIComponent(object.entity);
-		    	addUpdater(object.entity);
-		    	addTeamUnit(object.entity, 2, 2);
+		    	var entity = new iEntity();
+		    	entity.setModel(object)
+		    	entity.setRadius(1.5);
+		    	entity.attackHitTime=0.36666667461395264 -.08;
+		    	entity.topboard=new TopBoard(entity, model.topBoard);
+		    	entity.addAIComponent();
+		    	entity.addUpdater();
+		    	entity.addToTeam( 2, 2);
+		    	entity.addToScene();
 //		    	object.entity.audio=new THREE.PositionalAudio( audioListener );
 //		    	object.add(object.entity.audio);
 //		    	loadAudio( '../assets/audio/WoodMediumBashFlesh3.wav', (function(object){return function ( buffer ) {
@@ -99,22 +93,19 @@
 			var i = 0, original=object;//55
 			for(i=0;i<15;i++) {
 		    	object=cloneFbx(original);
-		    	var bbox = { geometry:original.boundingBoxGeometry, matrixWorld:object.matrixWorld };
-				bbox._model=object;
-				object.bbox=bbox;
-				raycaster_models.push(bbox);
-		    	
-				addAnimationMixer( object );
 	    		object.playAction('free');
 	    		var j = i>=15?i%15:i;
 	    		object.position.copy(team2Positions[j]);
-		    	scene.add( object );
-		    	new MonsterEntity().setModel(object).setRadius(2.5).speed=25;
-		    	object.entity.attackHitTime=0.36666667461395264 -.08;
-		    	object.entity.topboard=object.topboard=new TopBoard(object.entity, model2.topBoard);
-		    	new AIComponent(object.entity);
-		    	addUpdater(object.entity);
-		    	addTeamUnit(object.entity, 2, 2);
+	    		var entity = new iEntity();
+	    		entity.setModel(object);
+	    		entity.setRadius(2.5);
+	    		entity.speed=25;
+		    	entity.attackHitTime=0.36666667461395264 -.08;
+		    	entity.topboard=new TopBoard(entity, model2.topBoard);
+		    	entity.addAIComponent();
+		    	entity.addUpdater();
+		    	entity.addToTeam( 2, 2);
+		    	entity.addToScene();
 //		    	object.entity.audio=new THREE.PositionalAudio( audioListener );
 //		    	object.add(object.entity.audio);
 //		    	loadAudio( '../assets/audio/s1.mp3', (function(object){return function ( buffer ) {
@@ -125,24 +116,24 @@
 		    }
 		}
 	}
-	MonsterEntity.prototype =Object.create(iEntity.prototype);
-	function MonsterEntity() {
-		iEntity.call(this, null);
-		var walkSpeed=this.speed=25/1.5 ///4;          //移动速度
-	    var actRestTme =17000;            //更换待机指令的间隔时间
-	    var lastActTime;          //最近一次指令时间
-	}
-	
-	var v3_1=new THREE.Vector3(), actRestTme =17000;  //更换待机指令的间隔时间
-	MonsterEntity.prototype.super_update=MonsterEntity.prototype.update;
-	MonsterEntity.prototype.update= function (fElapse) {
-    	if(this.super_update(fElapse)) return;
-    	if(this.lastActTime===undefined) this.lastActTime= now-actRestTme;
-        //待机状态，等待actRestTme后重新随机指令
-        if (now - this.lastActTime > actRestTme) {
-        	this.lastActTime= now;
-        	//this.aiComponent.findPath(v3_1.set(rand(1,511),0, rand(1,511)));
-        }
-	}
+//	MonsterEntity.prototype =Object.create(iEntity.prototype);
+//	function MonsterEntity() {
+//		iEntity.call(this, null);
+//		var walkSpeed=this.speed=25/1.5 ///4;          //移动速度
+//	    var actRestTme =17000;            //更换待机指令的间隔时间
+//	    var lastActTime;          //最近一次指令时间
+//	}
+//	
+//	var v3_1=new THREE.Vector3(), actRestTme =17000;  //更换待机指令的间隔时间
+//	MonsterEntity.prototype.super_update=MonsterEntity.prototype.update;
+//	MonsterEntity.prototype.update= function (fElapse) {
+//    	if(this.super_update(fElapse)) return;
+//    	if(this.lastActTime===undefined) this.lastActTime= now-actRestTme;
+//        //待机状态，等待actRestTme后重新随机指令
+//        if (now - this.lastActTime > actRestTme) {
+//        	this.lastActTime= now;
+//        	//this.aiComponent.findPath(v3_1.set(rand(1,511),0, rand(1,511)));
+//        }
+//	}
 
 })();

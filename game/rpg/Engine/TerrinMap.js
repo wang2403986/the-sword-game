@@ -48,7 +48,11 @@ function cMap(source){
         geometry.translate(worldSize.x/2, 0, worldSize.y/2);
         geometry.computeVertexNormals(); //geometry.computeFaceNormals();
         plane.receiveShadow = true;
-        scene.add(plane);terrin2 = plane;terrin= plane;
+        terrin2 = plane;
+        terrin= plane;
+        selectionCircles = new THREE.Object3D();
+        scene.add(plane);
+        scene.add(selectionCircles);
 	    m_usefull = true;
 	    return true;
 	}

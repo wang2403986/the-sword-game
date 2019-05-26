@@ -3,15 +3,14 @@
 	window.getActiveEntity=function(){ return m_pActiveEntity; };
 	window.setActiveEntity=function(e){ return m_pActiveEntity=e; };
 	//////////////////////////////////////////////////////////////////////////
-	var g_idAllocator = 1000, g_autoAttackDelay=0,g_autoAttackDelayDelta=5;
+	var g_idAllocator = 1000, g_autoAttackDelay=0, g_autoAttackDelayDelta=5;
 	///生成id
 	function generateID() { return g_idAllocator++; }
 	window.iEntity=iEntity;
-	iEntity.array1=[];
+	var array1=[];
 	function iEntity() {
-		this.rangedAttack=false;
-		this.attackHitTime=0.28, this.attackDamage=1;
 		this.id = generateID();
+
 		this.maxHP=100;// max Health point满血生命值
 		this.HP=100;//Health point
 		this.MP=100;//魔法值
@@ -20,34 +19,38 @@
 		this.strength=10;//力量
 		this.intelligence=10;//天赋
 		this.agility=10;//敏捷
+		this.speed =25/1.1;//速度
 
 		this.radius= 3;//0.5~10, default 3
 		this.range= this.radius*1.42;
-		this.chaseRange= 44, this.attackRange= this.range + 3;
+		this.chaseRange= 44;
+		this.attackRange= this.range + 3;
 		this.acquisitionRange= 28;//主动攻击范围
-		this._autoAttackDelay = g_autoAttackDelay; g_autoAttackDelay += g_autoAttackDelayDelta;
+		this._autoAttackDelay = g_autoAttackDelay;
+		g_autoAttackDelay += g_autoAttackDelayDelta;
 		this._lastAutoAttackTime = Date.now();
+		this.rangedAttack=false;
+		this.attackHitTime=0.28;
+		this.attackDamage=1;
 
-		this.speed =25/1.1 //25;
 		this.attackTargets = [];
 	}
 	iEntity.prototype.setRadius=function(r) {
-		this.radius=r; this.range= this.radius*1.42; this.attackRange= this.range + 3;
+		this.radius=r;
+		this.range= this.radius*1.42;
+		this.attackRange= this.range + 3;
 		return this;
 	};
 	iEntity.prototype.playAction=function(e,a,b,c,d) { this.model.playAction(e,a,b,c,d); }
-	
+
 	iEntity.prototype.update=function(elapse) {
-		if (this.HP<1) {
+		if (this.HP<=0) {
 			if(!this.isDead){
 				this.onDeadTime = now;
 				this.onDead();
 			}
 			if (now-this.onDeadTime>2000){
-				removeTeamUnit(this);
-				removeUpdater(this);
-				scene.remove(this.model);
-				raycaster_models.remove(this.model.bbox);
+				this.destroy()
 			}
 			return 1;
 		}
@@ -66,10 +69,57 @@
 	    }
 	}
 	
+	iEntity.prototype.isActive = function() {
+	    return m_pActiveEntity === this;
+	}
+	iEntity.prototype.setModel=function(m) {
+		this.model=m;
+		this.pos= m.position;
+		
+		return m.entity = this;
+	}
+	iEntity.prototype.onHit=function(source) {
+		this.HP -= source.attackDamage;
+		if(this.topboard){
+			this.topboard.update(this.HP/this.maxHP);
+		}
+	};
+	iEntity.prototype.onDead=function() {
+		this.isDead = 1;
+		this.aiComponent.state=Define.PS_DIE;
+		this.playAction('die', false);
+		this.aiComponent=null;
+	};
+	iEntity.prototype.destroy=function() {
+		removeTeamUnit(this);
+		removeUpdater(this);
+		scene.remove(this.model);
+		raycaster_models.remove(this.model.bbox);
+		mixers.remove(this.model.mixer);
+	};
+	iEntity.prototype.addToScene=function() {
+		var model = this.model;
+		var bbox = { geometry:model.boundingBoxGeometry, matrixWorld:model.matrixWorld };
+		bbox._model=model;
+		model.bbox=bbox;
+		if(model.selectionCircle)
+			raycaster_models.push(model.bbox);
+		if(model.mixer)
+			mixers.push(model.mixer);
+		scene.add( model );
+	};
+	iEntity.prototype.addUpdater=function() { addUpdater(this); };
+	iEntity.prototype.addToTeam=function(teamId, playerId) {
+		if(Number.isInteger(playerId)) addTeamUnit(this, teamId, playerId);
+	};
+	iEntity.prototype.addAIComponent=function() { new AIComponent(this); };
+
 	iEntity.prototype.getNearbyUnits  = function(center, radius, limit, friendly,isAutoAttack) {
 		if(!window.g_gameTeams) return;
-		var targets=isAutoAttack?this.attackTargets:iEntity.array1, target, minDiatance = Infinity;
+		var targets = isAutoAttack ? this.attackTargets : array1;
 		targets.length=0;
+		var target;
+		var minDiatance = Infinity;
 		var distanceToSquared = window.distanceToSquared;
 		for (var i=0; i<g_gameTeams.length;i++) {
 			var teamPlayers = g_gameTeams[i];
@@ -103,30 +153,6 @@
 		}
 		return limit ===1? target : targets;
 	};
-
-	iEntity.prototype.isActive = function() {
-	    return m_pActiveEntity === this;
-	}
-	/*************************************************/
-	//位置
-	iEntity.prototype.getPos=function(){ return this.model.position; };
-	iEntity.prototype.setModel=function(m) {
-		this.model=m; this.pos= m.position;
-		return m.entity = this;
-	}
-	iEntity.prototype.onHit=function(source) {
-		this.HP -= source.attackDamage;
-		if(this.topboard){
-			this.topboard.update(this.HP/this.maxHP);
-		}
-	};
-	iEntity.prototype.onDead=function() {
-		this.isDead = 1;
-		this.aiComponent.state=Define.PS_DIE;
-		this.playAction('die', false);
-		this.aiComponent=null;
-	};
-/*************************************************/
 })()
 
 
