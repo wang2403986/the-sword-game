@@ -87,7 +87,6 @@ function removeTeamUnit(unit, teamId, playerId) {
 	unit.teamId= unit.playerId= undefined;
 	g_gameUnits.remove(unit);
 }
-
 //annie = new TextureAnimator( runnerTexture, 10, 1, 10, 75 ); // texture, #horiz, #vert, #total, duration.
 //function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
 //{	
@@ -128,7 +127,6 @@ function removeTeamUnit(unit, teamId, playerId) {
 //		}
 //	};
 //}
-
 (function() {
 	function addAnimationMixer(object) {
 		if(object.animations && object.animations.length){

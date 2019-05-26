@@ -36,7 +36,7 @@
 		var team1Positions=[{"x":279.3,"y":0,"z":224.5},{"x":279.5,"y":0,"z":232.5},{"x":279.2,"y":0,"z":240.2},{"x":279.3,"y":0,"z":248.6},{"x":287.4,"y":0,"z":224.5},{"x":287.3,"y":0,"z":232.5},{"x":287.2,"y":0,"z":240.2},{"x":287.4,"y":0,"z":248.4},{"x":295.4,"y":0,"z":224.5},{"x":295.5,"y":0,"z":232.4},{"x":295.2,"y":0,"z":240.6},{"x":295.4,"y":0,"z":248.4},{"x":303.5,"y":0,"z":224.4},{"x":303.4,"y":0,"z":232.5},{"x":303.4,"y":0,"z":240.4}];
 		//enemy units position
 		var team2Positions=[{"x":191.6,"y":0,"z":293.2},{"x":191.7,"y":0,"z":303.3},{"x":191.6,"y":0,"z":313.5},{"x":191.6,"y":0,"z":323.5},{"x":201.6,"y":0,"z":293.3},{"x":201.7,"y":0,"z":303.3},{"x":201.7,"y":0,"z":313.5},{"x":201.5,"y":0,"z":323.5},{"x":211.5,"y":0,"z":293.4},{"x":211.7,"y":0,"z":303.3},{"x":211.5,"y":0,"z":313.4},{"x":211.5,"y":0,"z":323.4},{"x":221.5,"y":0,"z":293.3},{"x":221.6,"y":0,"z":303.2},{"x":221.7,"y":0,"z":313.1}];
-		function onLoaded( object , team) {
+		function onLoaded( object) {
 			var i = 0, original=object;//55
 		    for(i=0;i<15;i++) {
 		    	object=cloneFbx(original);
@@ -54,16 +54,9 @@
 				entity.addToTeam(1, 1);
 				entity.addUpdater();
 				entity.addToScene();
-//		    	object.entity.audio=new THREE.PositionalAudio( audioListener );
-//		    	object.add(object.entity.audio);
-//		    	loadAudio( '../assets/audio/WoodMediumBashFlesh3.wav', (function(object){return function ( buffer ) {
-//					object.entity.audio.setBuffer( buffer );
-//					object.entity.audio.setRefDistance( 20 );
-//					object.entity.audio.setVolume( 2 );
-//				} })(object) );
 		    }
 		}
-		function onLoaded0( object , team) {
+		function onLoaded0( object) {
 			var i = 0, original=object;//55
 		    for(i=0;i<15;i++) {
 		    	object=cloneFbx(original);
@@ -80,16 +73,9 @@
 		    	entity.addUpdater();
 		    	entity.addToTeam( 2, 2);
 		    	entity.addToScene();
-//		    	object.entity.audio=new THREE.PositionalAudio( audioListener );
-//		    	object.add(object.entity.audio);
-//		    	loadAudio( '../assets/audio/WoodMediumBashFlesh3.wav', (function(object){return function ( buffer ) {
-//					object.entity.audio.setBuffer( buffer );
-//					object.entity.audio.setRefDistance( 20 );
-//					object.entity.audio.setVolume( 2 );
-//				} })(object) );
 		    }
 		}
-		function onLoaded2( object , team) {
+		function onLoaded2( object) {
 			var i = 0, original=object;//55
 			for(i=0;i<15;i++) {
 		    	object=cloneFbx(original);
@@ -106,34 +92,14 @@
 		    	entity.addUpdater();
 		    	entity.addToTeam( 2, 2);
 		    	entity.addToScene();
-//		    	object.entity.audio=new THREE.PositionalAudio( audioListener );
-//		    	object.add(object.entity.audio);
+//		    	entity.audio=new THREE.PositionalAudio( audioListener );
+//		    	entity.model.add(entity.audio);
 //		    	loadAudio( '../assets/audio/s1.mp3', (function(object){return function ( buffer ) {
-//					object.entity.audio.setBuffer( buffer );
-//					object.entity.audio.setRefDistance( 20 );
-//					object.entity.audio.setVolume( 2 );
+//					entity.audio.setBuffer( buffer );
+//					entity.audio.setRefDistance( 20 );
+//					entity.audio.setVolume( 2 );
 //				} })(object) );
 		    }
 		}
 	}
-//	MonsterEntity.prototype =Object.create(iEntity.prototype);
-//	function MonsterEntity() {
-//		iEntity.call(this, null);
-//		var walkSpeed=this.speed=25/1.5 ///4;          //移动速度
-//	    var actRestTme =17000;            //更换待机指令的间隔时间
-//	    var lastActTime;          //最近一次指令时间
-//	}
-//	
-//	var v3_1=new THREE.Vector3(), actRestTme =17000;  //更换待机指令的间隔时间
-//	MonsterEntity.prototype.super_update=MonsterEntity.prototype.update;
-//	MonsterEntity.prototype.update= function (fElapse) {
-//    	if(this.super_update(fElapse)) return;
-//    	if(this.lastActTime===undefined) this.lastActTime= now-actRestTme;
-//        //待机状态，等待actRestTme后重新随机指令
-//        if (now - this.lastActTime > actRestTme) {
-//        	this.lastActTime= now;
-//        	//this.aiComponent.findPath(v3_1.set(rand(1,511),0, rand(1,511)));
-//        }
-//	}
-
 })();

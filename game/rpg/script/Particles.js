@@ -971,16 +971,16 @@ gl_Position = projectionMatrix * modelViewMatrix * rotatedPoint;
 //		setupText( particleSystem );
 //		setupRain( particleSystem );
 //		setupAnim( particleSystem );
-		setupBall2( particleSystem );
+//		setupBall2( particleSystem );
 //		setupCube( particleSystem );
 //		setupPoof( particleSystem );
 //		setupTrail( particleSystem );
 
 //		renderer.gammaInput = true;
 //		renderer.gammaOutput = true;
-		document.addEventListener('keypress',onKeyPress);
-		document.addEventListener('keydown',onKeyDown);
-		document.addEventListener('keyup',onKeyUp);
+//		document.addEventListener('keypress',onKeyPress);
+//		document.addEventListener('keydown',onKeyDown);
+//		document.addEventListener('keyup',onKeyUp);
 		addUpdater({ update: update });
 	}
 

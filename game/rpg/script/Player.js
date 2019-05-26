@@ -37,15 +37,15 @@
 		entity.addToTeam(1, 1);
 		entity.addToScene();
 		entity.addUpdater();
+//    	entity.audio=new THREE.PositionalAudio( audioListener );
+//    	entity.model.add(entity.audio);
+//    	loadAudio( '../assets/audio/s1.mp3', (function(object){return function ( buffer ) {
+//			entity.audio.setBuffer( buffer );
+//			entity.audio.setRefDistance( 20 );
+//			entity.audio.setVolume( 2 );
+//		} })(object) );
 		// ÃÌº”π÷ŒÔ
 		addMonster();
-//		object.entity.audio=new THREE.PositionalAudio( audioListener );
-//		loadAudio( '../assets/audio/EtherealMediumHit3.wav', function ( buffer ) {
-//			object.entity.audio.setBuffer( buffer );
-//			object.entity.audio.setVolume( 10 );
-//			object.entity.audio.setRefDistance( 20 );
-//		} );
-//    	object.add(object.entity.audio);
     	
     	var geometry = new THREE.PlaneBufferGeometry( 4, 4 );
     	var vertices = geometry.attributes.position.array;
