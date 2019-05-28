@@ -49,12 +49,12 @@
 		}
 		];
 		for(var i=0;i< models.length;i++){
-			loadModel(models[i], onLoaded);
+			ResourceManager.loadModel(models[i], onLoaded);
 		}
 		function onLoaded( object, callback ) {
 			var i = 155, original=object;//55
 		    while(i--) {
-		    	object=cloneFbx(original);
+		    	object=ResourceManager.cloneFbx(original);
 	    		//object.playAction('free');
 		    	object.position.set(512*Math.random(),0, 512*Math.random())
 		    	var pMap = getMap();

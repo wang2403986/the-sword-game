@@ -4,19 +4,19 @@
 			     skill: '../assets/models/ou_yang@skill.FBX',
 			     attack: '../assets/models/ou_yang@attack.FBX',//aaa
 			     die: '../assets/models/ou_yang@die.FBX'  };
-	var modelAttr = {
+	var modelConfig = {
 		url: '../assets/models/ou_yang.FBX',
 		animation:'walk',
 		animationsFiles:anims,
 		material:{alphaTest:.5},
-		boundingBox:{x:60, y:160, z:60},
+		boundingBox:{x:70, y:180, z:70},
 		scale:.03,//.04
 		position:{x:281.8434354806188, y: 0, z: 259.4504251984771},
 		topBoard:{height:280, scale:{x:100, y:10, z:1}},
 		selectable:true
 	};
 	
-	loadModel(modelAttr, onLoaded);
+	ResourceManager.loadModel(modelConfig, onLoaded);
 	
 	function onLoaded( model ) {
 		
@@ -32,7 +32,7 @@
 		entity.rangedAttack=true;
 		entity.attackRange=15;
 		entity.maxHP= entity.HP=1000;
-		entity.topboard=new TopBoard(entity, modelAttr.topBoard);
+		entity.addTopBoard(modelConfig.topBoard);
 		entity.addAIComponent();
 		entity.addToTeam(1, 1);
 		entity.addToScene();

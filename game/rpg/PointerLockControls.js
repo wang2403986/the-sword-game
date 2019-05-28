@@ -236,5 +236,5 @@ THREE.PointerLockControls.prototype.constructor = THREE.PointerLockControls;
 			prevTime = time;
 		}
 	};
-	addUpdater(gameObject);
+	SceneManager.addUpdater(gameObject);
 })()

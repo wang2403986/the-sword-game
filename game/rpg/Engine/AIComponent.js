@@ -3,6 +3,7 @@
 	var playerFindPathType = 0,autoFindPathType = 1, autoAttackFindPathType = 2;
 	var nextPos = new THREE.Vector3();
 	var up=new THREE.Vector3(0, 1, 0)
+	var distanceToSquared = Utils.distanceToSquared;
 	window.AIComponent=AIComponent;
 	function AIComponent(entity) {
 		this.entity = 0,
@@ -276,7 +277,7 @@
 		var entity=this.entity;
 		if (this.skillTarget) { // have casted a skill
 			var distance=distanceToSquared(this.skillTarget.pos,entity.pos);
-			var attackRange = this.skillTarget.range+ source.attackRange;
+			var attackRange = this.skillTarget.range+ entity.attackRange;
 			if(distance<=attackRange*attackRange)// do start Skill
 				this.startSkill();
 		} else if(this.attackTarget) {

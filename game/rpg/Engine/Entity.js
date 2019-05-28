@@ -80,8 +80,8 @@
 	}
 	iEntity.prototype.onHit=function(source) {
 		this.HP -= source.attackDamage;
-		if(this.topboard){
-			this.topboard.update(this.HP/this.maxHP);
+		if(this.topBoard){
+			this.topBoard.update(this.HP/this.maxHP);
 		}
 	};
 	iEntity.prototype.onDead=function() {
@@ -91,38 +91,49 @@
 		this.aiComponent=null;
 	};
 	iEntity.prototype.destroy=function() {
-		removeTeamUnit(this);
-		removeUpdater(this);
-		scene.remove(this.model);
-		raycaster_models.remove(this.model.bbox);
-		mixers.remove(this.model.mixer);
+		SceneManager.removeUnitFromTeam(this);
+		SceneManager.removeUpdater(this);
+		SceneManager.remove(this.model);
 	};
+	var wireframeMaterial=new THREE.MeshBasicMaterial({wireframe : true});
 	iEntity.prototype.addToScene=function() {
 		var model = this.model;
-		var bbox = { geometry:model.boundingBoxGeometry, matrixWorld:model.matrixWorld };
-		bbox._model=model;
-		model.bbox=bbox;
-		if(model.selectionCircle)
-			raycaster_models.push(model.bbox);
+		if(model.selectionCircle){
+			var bbox = { geometry:model.boundingBoxGeometry, matrixWorld:model.matrixWorld };
+			bbox.model=model;
+			model.bbox=bbox;
+			SceneManager.boundingBoxes.push(model.bbox);
+//			var cube = new THREE.Mesh(model.boundingBoxGeometry, wireframeMaterial);
+//			scene.add( cube );
+//			cube.matrixWorld=model.matrixWorld;
+//			cube.matrixAutoUpdate=false;
+		}
 		if(model.mixer)
 			mixers.push(model.mixer);
 		scene.add( model );
 	};
-	iEntity.prototype.addUpdater=function() { addUpdater(this); };
+	iEntity.prototype.addUpdater=function() {
+		SceneManager.addUpdater(this);
+	};
 	iEntity.prototype.addToTeam=function(teamId, playerId) {
-		if(Number.isInteger(playerId)) addTeamUnit(this, teamId, playerId);
+		if(Number.isInteger(playerId))
+			SceneManager.addUnitToTeam(this, teamId, playerId);
 	};
 	iEntity.prototype.addAIComponent=function() { new AIComponent(this); };
+	
+	iEntity.prototype.addTopBoard =function(options) {
+		this.topBoard=new TopBoard(this, options);
+	};
 
 	iEntity.prototype.getNearbyUnits  = function(center, radius, limit, friendly,isAutoAttack) {
-		if(!window.g_gameTeams) return;
 		var targets = isAutoAttack ? this.attackTargets : array1;
 		targets.length=0;
 		var target;
 		var minDiatance = Infinity;
-		var distanceToSquared = window.distanceToSquared;
-		for (var i=0; i<g_gameTeams.length;i++) {
-			var teamPlayers = g_gameTeams[i];
+		var distanceToSquared = Utils.distanceToSquared;
+		var teams= SceneManager.teams;
+		for (var i=0; i<teams.length;i++) {
+			var teamPlayers = teams[i];
 			var teamId = undefined;
 			if(teamPlayers.length) teamId=teamPlayers[0].teamId;
 			if(friendly === true) {

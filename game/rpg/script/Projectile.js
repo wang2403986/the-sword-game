@@ -44,7 +44,7 @@ function Projectile(source, attackTarget, m_speed, gravity) {
         angleSpeed = angle / riseTime;
  
         direction .copy(endPos) .sub( transform.position).normalize();
-        addUpdater(this);
+        SceneManager.addUpdater(this);
     }
     this.start();
     this.update= update;
@@ -55,8 +55,8 @@ function Projectile(source, attackTarget, m_speed, gravity) {
     		if(attackTarget.onHit){
     			attackTarget.onHit(source);
     		}
-    		removeUpdater(this);
-    		scene.remove( transform.system );
+    		SceneManager.removeUpdater(this);
+    		SceneManager.remove( transform.system );
     		objectsPool.push(transform);
     		return;
     	}

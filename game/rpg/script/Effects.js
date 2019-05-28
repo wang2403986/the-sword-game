@@ -193,15 +193,15 @@ function BurstEffect(position, EffectTime) {
     	scene.add( shockwave );
     	shockwave.position.copy(position);
     	shockwave.position.y= 2 + position.height;
-        addUpdater(this);
+    	SceneManager.addUpdater(this);
     }
     this.start();
     this.update=function (deltaTime)
     {
     	//shockwave.update(deltaTime, (time+deltaTime));
     	if (totalTime <= time-1) {
-    		removeUpdater(this);
-    		scene.remove( shockwave );
+    		SceneManager.removeUpdater(this);
+    		SceneManager.remove( shockwave );
     		shockwavePool.push(shockwave);
     		return;
     	}

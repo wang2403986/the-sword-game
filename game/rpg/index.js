@@ -1,7 +1,6 @@
 var container, stats, controls, terrin;
 var raycaster = new THREE.Raycaster();
-var raycaster_models=[];
-var mouse = new THREE.Vector2(), INTERSECTED;
+var mouse = new THREE.Vector2();
 mouse.moveX=mouse.moveY=0;
 var camera, scene, renderer, light;
 var keyboard = new KeyboardState();
@@ -79,16 +78,13 @@ function animate() {
 	var fElapse  = (now - window.now)/1000.0;
     window.now = now;
     keyboard.update();
-	for ( var i = 0; i < mixers.length; i ++ )
-		mixers[ i ].update( fElapse );
-	for(var i=0;i<updateTaskList.length;i++) {
-		updateTaskList[i].update(fElapse);
-	}
-	if(window.selectionCircles && window.g_gameUnits){
+    SceneManager.update(fElapse);
+	if(window.selectionCircles){
 		selectionCircles.children.length=0;
 		terrin.renderOrder = -2;
-		for (var i=0; i<g_gameUnits.length;i++) {
-			var unit = g_gameUnits[i];
+		var units = SceneManager.units;
+		for (var i=0; i<units.length;i++) {
+			var unit = units[i];
 			var model=unit.model;
 			var circle=model.selectionCircle;
 			if(model.glory){

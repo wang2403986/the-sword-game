@@ -981,7 +981,7 @@ gl_Position = projectionMatrix * modelViewMatrix * rotatedPoint;
 //		document.addEventListener('keypress',onKeyPress);
 //		document.addEventListener('keydown',onKeyDown);
 //		document.addEventListener('keyup',onKeyUp);
-		addUpdater({ update: update });
+		SceneManager.addUpdater({ update: update });
 	}
 
 	function setupFlame( particleSystem ) {

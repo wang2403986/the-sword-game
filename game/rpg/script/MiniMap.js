@@ -59,9 +59,9 @@
 //				}
 //				ctx.stroke();
 				
-				if(!window.g_gameUnits) return;
-				for (var j=0; j<g_gameUnits.length;j++) {
-					var unit = g_gameUnits[j];
+				var units = SceneManager.units;
+				for (var j=0; j<units.length;j++) {
+					var unit = units[j];
 					var r = unit.radius;
 					var x=unit.pos.x,y=unit.pos.z;
 					x=x-r/2;y=y-r/2;
@@ -85,7 +85,7 @@
 				ctx.stroke();
 			}
 		}
-		addUpdater(this);
+		SceneManager.addUpdater(this);
 	}
 
 })();

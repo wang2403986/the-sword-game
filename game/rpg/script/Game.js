@@ -1,17 +1,5 @@
 (function (){
 	var loader2 = new THREE.JSONLoader();
-	loader2.load("../assets/models/select.json", function(geometry,matls){
-		matls[0].skinning= matls[0].transparent=true;
-		var mesh = new THREE.SkinnedMesh(geometry, matls[0] );
-
-		mesh.rotateX(-Math.PI/2);
-		scene.add( mesh );
-        //geometry.animations[0].resetDuration()
-        var mixer = new THREE.AnimationMixer( mesh );
-        var action=mixer.clipAction(geometry.animations[0] );
-		action.reset().play();
-        mixers.push(mixer);
-    });
 	window.showClickEffects=function(){};
 	loader2.load("../assets/models/RallyArrow2.json", function(geometry,matls){
 		matls[0].skinning= matls[0].transparent=true;matls[0].color.setRGB(34/256,177/256,76/256);
@@ -44,7 +32,8 @@
 	var selectionMaterial = new THREE.LineBasicMaterial({ color: 0xff0000,depthTest: false,depthWrite:false });
 	var selectionRect=new THREE.Line(geometryPoints, selectionMaterial);
 	
-	var rectPositions=[0,0,0,0], selections=[]
+	var rectPositions=[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()];
+	var selections=[]
 	function sign (p1, p2, p3) {
 //	    return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
 		return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.z - p3.z);
@@ -58,7 +47,7 @@
 
 	    return ((b1 == b2) && (b2 == b3));
 	}
-	function locateSelectionRect(){
+	function selectObjectsInRect(x,y,w,h){
 		var arr= geometryPoints.attributes.position.array;
 		for(var i=0;i< 5; i++) {
 			var j = i>3? 0: i;
@@ -70,14 +59,17 @@
 		geometryPoints.attributes.position.needsUpdate = true;
 		geometryPoints.computeBoundingSphere()
 		selections.length=0;
-		for (var j=0; j<g_gameUnits.length;j++) {
-			var unit = g_gameUnits[j];
+		var units = SceneManager.units;
+		for (var j=0; j<units.length;j++) {
+			var unit = units[j];
 			var radius=unit.radius;
 			if(unit.model.selectionCircle){
-				var select =isPointInTriangle(unit.pos,rectPositions[0],rectPositions[1],rectPositions[2])
-				 ||isPointInTriangle(unit.pos,rectPositions[0],rectPositions[2],rectPositions[3]);
-				unit.model.selectionCircle.visible = select;
-				if(select)selections.push(unit);
+				var pos = rectPositions[0].copy(unit.pos).project(camera);
+				var isSelected = x<=pos.x&& pos.x<=x+w && y<=pos.y&& pos.y<=y+h;
+//				var select =isPointInTriangle(unit.pos,rectPositions[0],rectPositions[1],rectPositions[2])
+//				 ||isPointInTriangle(unit.pos,rectPositions[0],rectPositions[2],rectPositions[3]);
+				unit.model.selectionCircle.visible = isSelected;
+				if(isSelected)selections.push(unit);
 			}
 		}
 	}
@@ -106,19 +98,15 @@
 			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 			mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 			if (window.terrin===undefined) return;
-			var x=mouse.x, y=mouse.y, objects=[terrin];
-			raycaster.setFromCamera( mouseStart, camera );
-			rectPositions[0] = raycaster.intersectObjects( objects )[0].point;
-			mouse.x=x ;mouse.y = mouseStart.y;
-			raycaster.setFromCamera( mouse, camera );
-			rectPositions[1] = raycaster.intersectObjects( objects )[0].point;
-			mouse.x=x ;mouse.y = y;
-			raycaster.setFromCamera( mouse, camera );
-			rectPositions[2] = raycaster.intersectObjects( objects )[0].point;
-			mouse.x=mouseStart.x ;mouse.y = y;
-			raycaster.setFromCamera( mouse, camera );
-			rectPositions[3] = raycaster.intersectObjects( objects )[0].point;
-			locateSelectionRect()
+			var x=mouse.x, y=mouse.y//, objects=[terrin];
+			rectPositions[0].set(mouseStart.x,mouseStart.y,0).unproject(camera);
+			rectPositions[1].set(x,mouseStart.y,0).unproject(camera);
+			rectPositions[2].set(x,y,0).unproject(camera);
+			rectPositions[3].set(mouseStart.x,y,0).unproject(camera);
+			var w=Math.abs(x-mouseStart.x), h=Math.abs(y-mouseStart.y);
+			if(x>mouseStart.x) x=mouseStart.x;
+			if(y>mouseStart.y) y=mouseStart.y;
+			selectObjectsInRect(x,y, w, h);
 		}
 	}, false);
 	document.addEventListener('mouseup', mouseupMsg, false);
@@ -155,13 +143,15 @@
 			document.body.style.cursor='pointer';
 			if (window.terrin===undefined) return;
 			//if(!window.terrin2) return;
-			var intersects=raycaster.intersectBoxs( raycaster_models );
+			var intersects=raycaster.intersectBoxs( SceneManager.boundingBoxes );
 			var isAttack=true;
 			if(intersects.length > 0 ) {
-				var target = intersects[0].object._model.entity, pos = target.pos;
-				var entity = window.cursorEntity;showClickEffects()
+				var target = intersects[0].object.model.entity, pos = target.pos;
+				var entity = window.cursorEntity;
+				showClickEffects()
 				entity.position.set(pos.x,pos.y,pos.z);
-				entity.visible=true; entity.lifeTime=now + 800;
+				entity.visible=true;
+				entity.lifeTime=now + 800;
 				for (var i=0;i<selections.length;i++) {
 					if(selections[i].aiComponent&& selections[i]!==target ){
 						if(selections[i].teamId!==target.teamId)
@@ -179,9 +169,11 @@
 			if (intersects.length)  {
 				var pos =intersects[0].point;
 //					player.aiComponent.breakAutoMove();
-				var entity = window.cursorEntity;showClickEffects()
+				var entity = window.cursorEntity;
+				showClickEffects()
 				entity.position.set(pos.x,pos.y,pos.z);
-				entity.visible=true; entity.lifeTime=now + 800;
+				entity.visible=true;
+				entity.lifeTime=now + 800;
 				var maxRadius=0;
 				for (var i=0;i<selections.length;i++) {
 					if(selections[i].aiComponent){
@@ -222,12 +214,13 @@
 		if(camera.isDraged && camera.isDraged())
 			return 1;
 		if(!skillTargetMode && isDraged) return ;
-		var intersects=raycaster.intersectBoxs( raycaster_models ), skillTarget;
+		var intersects=raycaster.intersectBoxs( SceneManager.boundingBoxes );
+		var skillTarget;
 		if(skillTargetMode) {
 			skillTargetMode = false;
 			document.body.style.cursor='pointer';
 			if(intersects.length > 0 ) {
-				skillTarget = intersects[0].object._model.entity;
+				skillTarget = intersects[0].object.model.entity;
 				player.entity.aiComponent.setSkillTarget(skillTarget);
 			}
 			return;
@@ -237,17 +230,9 @@
 				selections[j].model.selectionCircle.visible=false;
 			}
 			selections.length=0;
-			if (selection) {
-				selection._model.selectionCircle.visible=false;
-			}
 			selection = intersects[0].object;
-			selection._model.selectionCircle.visible=true;
-			setActiveEntity(selection._model.entity);
-			selections.push(selection._model.entity)
-		} else {
-			if(selection) selection._model.selectionCircle.visible=false;
-			selection=null
-			setActiveEntity(null);
+			selection.model.selectionCircle.visible=true;
+			selections.push(selection.model.entity)
 		}
 	}
 })(window);

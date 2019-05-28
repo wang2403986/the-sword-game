@@ -1,92 +1,163 @@
-var WM_MOUSEWHEEL = 0, WM_LBUTTONDOWN = 1, WM_RBUTTONDOWN = 2, WM_LBUTTONUP = 3,
-	WM_RBUTTONUP = 4, WM_MOUSEMOVE = 5, WM_MOUSELEAVE = 6;
-var CM_LDOWN = WM_LBUTTONDOWN, CM_LUP = WM_LBUTTONUP ,CM_RUP = WM_RBUTTONUP,
-	CM_RDOWN = WM_RBUTTONDOWN, CM_LEAVE = WM_MOUSELEAVE;
+//var WM_MOUSEWHEEL = 0, WM_LBUTTONDOWN = 1, WM_RBUTTONDOWN = 2, WM_LBUTTONUP = 3,
+//	WM_RBUTTONUP = 4, WM_MOUSEMOVE = 5, WM_MOUSELEAVE = 6;
+//var CM_LDOWN = WM_LBUTTONDOWN, CM_LUP = WM_LBUTTONUP ,CM_RUP = WM_RBUTTONUP,
+//	CM_RDOWN = WM_RBUTTONDOWN, CM_LEAVE = WM_MOUSELEAVE;
 Define = { PS_FREE:'free', PS_MOVE:'walk', PS_ATTACK:'attack', PS_DIE:'die', PS_SKILL:'skill'};
 
-function distanceToSquared(pos, pos2){
-	var dx=(pos.x>>0)-(pos2.x>>0),dy=(pos.z>>0)-(pos2.z>>0);
-	return dx*dx+dy*dy;
-}
 
-var audioLoader = new THREE.AudioLoader();
-var audioListener = new THREE.AudioListener();
-var audiosData={};
-function loadAudio(url, callback){
-	if(!audiosData[url]){
-		audiosData[url]={};
-		var data = audiosData[url];
-		data.listeners=[callback];
-		audioLoader.load( url, function ( buffer ) {
-			data.buffer=buffer;
-			for(var i=0;i<data.listeners.length;i++){
-				data.listeners[i](buffer);
+var Utils = {};
+(function(){
+	Utils.distanceToSquared=distanceToSquared;
+	function distanceToSquared(pos, pos2){
+		var dx=(pos.x>>0)-(pos2.x>>0),dy=(pos.z>>0)-(pos2.z>>0);
+		return dx*dx+dy*dy;
+	}
+	
+	var audioLoader = new THREE.AudioLoader();
+	var audioListener = new THREE.AudioListener();
+	var audiosData={};
+	function loadAudio(url, callback){
+		if(!audiosData[url]){
+			audiosData[url]={};
+			var data = audiosData[url];
+			data.listeners=[callback];
+			audioLoader.load( url, function ( buffer ) {
+				data.buffer=buffer;
+				for(var i=0;i<data.listeners.length;i++){
+					data.listeners[i](buffer);
+				}
+			} );
+		} else {
+			if(audiosData[url].buffer) callback(audiosData[url].buffer);
+			else audiosData[url].listeners.push(callback);
+		}
+	}
+	Array.prototype.remove = function (val) {
+		var index = this.indexOf(val);
+		if (index > -1) {
+			this.splice(index, 1);
+		}
+	};
+	if (!Array.prototype.find) {
+		Array.prototype.find= function(predicate) {
+		  var o = this;
+		  var len = o.length >>> 0;
+		  var thisArg = arguments[1];
+		  var k = 0;
+		  while (k < len) {
+		    var kValue = o[k];
+		    if (predicate.call(thisArg, kValue, k, o)) {
+		      return kValue;
+		    }
+		    k++;
+		  }
+		  return undefined;
+		}
+	};
+	
+	var inverseMatrix = new THREE.Matrix4(), ray = new THREE.Ray(), sphere = new THREE.Sphere(), intersects=[];
+	var projectVector = new THREE.Vector3();
+	function ascSort( a, b ) {
+		return a.distance - b.distance;
+	}
+	THREE.Raycaster.prototype.intersectBoxs =function (objects) {
+		intersects.length=0;
+		for (var i=0;i<objects.length;i++){
+			var object=objects[i];
+			var _this = object, raycaster=this;
+			var geometry = _this.geometry, matrixWorld = _this.matrixWorld;
+			// Checking boundingSphere distance to ray
+			if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
+			sphere.copy( geometry.boundingSphere );
+			sphere.applyMatrix4( matrixWorld );
+			if ( raycaster.ray.intersectsSphere( sphere ) === false ) continue;
+			// Check boundingBox before continuing
+			if ( geometry.boundingBox !== null ) {
+				inverseMatrix.getInverse( matrixWorld );
+				ray.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
+				if ( ray.intersectsBox( geometry.boundingBox ) === false ) continue;
 			}
-		} );
-	} else {
-		if(audiosData[url].buffer) callback(audiosData[url].buffer);
-		else audiosData[url].listeners.push(callback);
+			projectVector.copy(object.model.position).project(camera)
+			object.distance=projectVector.z;
+			object.object=object;
+			intersects.push(object);
+		}
+		intersects.sort( ascSort );
+		return intersects;
 	}
-}
-Array.prototype.remove = function (val) {
-	var index = this.indexOf(val);
-	if (index > -1) {
-		this.splice(index, 1);
-	}
-};
-if (!Array.prototype.find) {
-	Array.prototype.find= function(predicate) {
-	  var o = this;
-	  var len = o.length >>> 0;
-	  var thisArg = arguments[1];
-	  var k = 0;
-	  while (k < len) {
-	    var kValue = o[k];
-	    if (predicate.call(thisArg, kValue, k, o)) {
-	      return kValue;
-	    }
-	    k++;
-	  }
-	  return undefined;
-	}
-};
+})();
 
-var updateTaskList = []
-function addUpdater(e)
-{
-	updateTaskList.push(e);
-}
-function removeUpdater(e) {  updateTaskList.remove(e);  }
-/**
- * 添加单位到玩家所在队伍
- * @param unit 单位
- * @param teamId 所在队伍
- * @param playerId 所属玩家Id
- */
-function addTeamUnit(unit, teamId, playerId) {
-	if(!window.g_gameTeams) {g_gameTeams=[]; g_gameUnits = []};
-	var team=g_gameTeams.find(function(e){return  e.length&& e[0].teamId==teamId});
-	var player;
-	if(team) player = team.find(function(e){return  e.length&& e[0].playerId==playerId});
-	if(!team) {
-		team=[]; team.teamId=teamId; g_gameTeams.push(team);
+
+var SceneManager ={};
+SceneManager.teams=[];
+SceneManager.units=[];
+SceneManager.boundingBoxes=[];
+(function(){
+	var updateTaskList = [];
+	var teams=SceneManager.teams;
+	var units=SceneManager.units;
+	SceneManager.update =function (fElapse){
+		for ( var i = 0; i < mixers.length; i ++ )
+			mixers[ i ].update( fElapse );
+		for(var i=0;i<updateTaskList.length;i++) {
+			updateTaskList[i].update(fElapse);
+		}
 	}
-	if(!player){
-		player=[];player.teamId=teamId; player.playerId= playerId;
-		team.push(player);
+	SceneManager.add = function(e){
+		scene.add(e);
+	};
+	SceneManager.remove = function(e){
+		scene.remove(e);
+		mixers.remove(e.mixer);
+		SceneManager.boundingBoxes.remove(e.bbox);
+	};
+	SceneManager.addUpdater=addUpdater;
+	SceneManager.removeUpdater=removeUpdater;
+	SceneManager.addUnitToTeam=addUnitToTeam;
+	SceneManager.removeUnitFromTeam=removeUnitFromTeam;
+	function addUpdater(e)
+	{
+		updateTaskList.push(e);
 	}
-	unit.teamId= teamId, unit.playerId= playerId;
-	player.push(unit);
-	g_gameUnits.push(unit);
-}
-function removeTeamUnit(unit, teamId, playerId) {
-	if(teamId===undefined) teamId=unit.teamId, playerId=unit.playerId;
-	var team=g_gameTeams.find(function(e){return  e.length&& e[0].teamId===teamId}), player;
-	if(team) player = team.find(function(e){return  e.length&& e[0].playerId===playerId});
-	if(player)  player.remove(unit);
-	unit.teamId= unit.playerId= undefined;
-	g_gameUnits.remove(unit);
-}
+	function removeUpdater(e) {  updateTaskList.remove(e);  }
+	/**
+	 * 添加单位到玩家所在队伍
+	 * @param unit 单位
+	 * @param teamId 所在队伍
+	 * @param playerId 所属玩家Id
+	 */
+	function addUnitToTeam(unit, teamId, playerId) {
+		var team=teams.find(function(e){return  e.length&& e[0].teamId==teamId});
+		var player;
+		if(team) player = team.find(function(e){return  e.length&& e[0].playerId==playerId});
+		if(!team) {
+			team=[];
+			team.teamId=teamId;
+			teams.push(team);
+		}
+		if(!player){
+			player=[];
+			player.teamId=teamId;
+			player.playerId= playerId;
+			team.push(player);
+		}
+		unit.teamId= teamId, unit.playerId= playerId;
+		player.push(unit);
+		units.push(unit);
+	}
+	function removeUnitFromTeam(unit, teamId, playerId) {
+		if(teamId===undefined) {
+			teamId=unit.teamId;
+			playerId=unit.playerId;
+		}
+		var team=teams.find(function(e){return  e.length&& e[0].teamId===teamId});
+		var player;
+		if(team) player = team.find(function(e){ return  e.length&& e[0].playerId===playerId });
+		if(player)  player.remove(unit);
+		unit.teamId= unit.playerId= undefined;
+		units.remove(unit);
+	}
+})();
 //annie = new TextureAnimator( runnerTexture, 10, 1, 10, 75 ); // texture, #horiz, #vert, #total, duration.
 //function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
 //{	
@@ -127,6 +198,7 @@ function removeTeamUnit(unit, teamId, playerId) {
 //		}
 //	};
 //}
+var ResourceManager ={};
 (function() {
 	function addAnimationMixer(object) {
 		if(object.animations && object.animations.length){
@@ -148,7 +220,7 @@ function removeTeamUnit(unit, teamId, playerId) {
 	var selectionGeometry = new THREE.BufferGeometry().setFromPoints( points );delete points;
 	var selectionMaterial = new THREE.LineBasicMaterial({ color: 0xff0000,linewidth: 2, depthTest: false,depthWrite:false });
 
-	window.cloneFbx =function(fbx) {
+	ResourceManager.cloneFbx =function(fbx) {
 	    var clone = fbx.clone(true);
 	    clone.animations = fbx.animations;
 	    var skinnedMeshes = {};
@@ -207,29 +279,6 @@ function removeTeamUnit(unit, teamId, playerId) {
 	    return clone;
 	};
 
-	var inverseMatrix = new THREE.Matrix4(), ray = new THREE.Ray(), sphere = new THREE.Sphere(), intersects=[];
-	THREE.Raycaster.prototype.intersectBoxs =function (objects) {
-		intersects.length=0;
-		for (var i=0;i<objects.length;i++){
-			var object=objects[i];
-			var _this = object, raycaster=this;
-			var geometry = _this.geometry, matrixWorld = _this.matrixWorld;
-			// Checking boundingSphere distance to ray
-			if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
-			sphere.copy( geometry.boundingSphere );
-			sphere.applyMatrix4( matrixWorld );
-			if ( raycaster.ray.intersectsSphere( sphere ) === false ) continue;
-			// Check boundingBox before continuing
-			if ( geometry.boundingBox !== null ) {
-				inverseMatrix.getInverse( matrixWorld );
-				ray.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
-				if ( ray.intersectsBox( geometry.boundingBox ) === false ) continue;
-			}
-			object.object=object;
-			intersects.push(object);
-		}
-		return intersects;
-	}
 	function initMeshAnimation(object, speed) {
 		object.animations.forEach(function (clip) {
 			var tracks=clip.tracks, start, times;
@@ -262,7 +311,7 @@ function removeTeamUnit(unit, teamId, playerId) {
 		this.currentAction = action;
 	}
 	var loader = new THREE.FBXLoader(), loadedModels={};
-	window.loadModel = function(model, callback) {
+	ResourceManager.loadModel = function(model, callback) {
 		var anims=model.animationsFiles;
 		var keys=Object.keys(anims);
 		var key_index=0;

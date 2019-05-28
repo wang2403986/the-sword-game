@@ -18,6 +18,7 @@
 		objects = new Float32Array(memory.buffer, app.getObjects());
 		f32Array = new Float32Array(memory.buffer, app.getArray());
 		console.log(MAP_SIZE =app.main());
+		SceneManager.addUpdater(this);
 	};
 	var scaleFactor = 1, invScaleFactor = 1;
 	function PathFinder(options) {
@@ -64,7 +65,7 @@
 			var r1=unit.radius;
 			x1 = x1- (r1>>0), y1 = y1-(r1>>0);
 			var w1=2*r1;
-			var units=window.g_gameUnits;
+			var units=SceneManager.units;
 			var aiComponent, collision, result, pos;
 			var length = units.length;
 			for (var j=0; j<length;j++) {
@@ -98,8 +99,9 @@
 			var aiComponent = unit0.aiComponent;
 			var avoidance=aiComponent.attackTarget||aiComponent.skillTarget||aiComponent.findPathType === 2;
 			avoidance=avoidance || aiComponent.needsFindPath;
-			for (var j=0; j<g_gameUnits.length;j++) {
-				var obstacleUnit = g_gameUnits[j];
+			var units = SceneManager.units
+			for (var j=0; j<units.length;j++) {
+				var obstacleUnit = units[j];
 				var component=obstacleUnit.aiComponent;
 				if (obstacleUnit === unit0 ||
 					(!avoidance&&component&&component.autoMove&&!component.isWaiting)) continue;
@@ -124,6 +126,7 @@
 			aiComponent.collisionCount=0;
 			
 			if(aiComponent.findPathDiscarded) return;
+			var distanceToSquared = Utils.distanceToSquared;
 			if (aiComponent.findPathType === 2) {// auto find attack target
 				var arr=aiComponent.entity.attackTargets, tmpPos=aiComponent.entity.pos;
 				array2.length=0;
@@ -190,7 +193,6 @@
 			}
 			
 		}
-		addUpdater(this);
 
 		function selectSort(arr){
 		    var len=arr.length;
