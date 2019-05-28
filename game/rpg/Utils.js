@@ -1,18 +1,18 @@
-//var WM_MOUSEWHEEL = 0, WM_LBUTTONDOWN = 1, WM_RBUTTONDOWN = 2, WM_LBUTTONUP = 3,
-//	WM_RBUTTONUP = 4, WM_MOUSEMOVE = 5, WM_MOUSELEAVE = 6;
-//var CM_LDOWN = WM_LBUTTONDOWN, CM_LUP = WM_LBUTTONUP ,CM_RUP = WM_RBUTTONUP,
-//	CM_RDOWN = WM_RBUTTONDOWN, CM_LEAVE = WM_MOUSELEAVE;
 Define = { PS_FREE:'free', PS_MOVE:'walk', PS_ATTACK:'attack', PS_DIE:'die', PS_SKILL:'skill'};
 
 
 var Utils = {};
 (function(){
-	Utils.distanceToSquared=distanceToSquared;
-	function distanceToSquared(pos, pos2){
+	Utils.distanceSqInt=distanceSqInt;
+	Utils.distanceSq=distanceSq;
+	function distanceSqInt(pos, pos2){
 		var dx=(pos.x>>0)-(pos2.x>>0),dy=(pos.z>>0)-(pos2.z>>0);
 		return dx*dx+dy*dy;
 	}
-	
+	function distanceSq(pos, pos2){
+		var dx=(pos.x)-(pos2.x),dy=(pos.z)-(pos2.z);
+		return dx*dx+dy*dy;
+	}
 	var audioLoader = new THREE.AudioLoader();
 	var audioListener = new THREE.AudioListener();
 	var audiosData={};
@@ -276,6 +276,7 @@ var ResourceManager ={};
 	    if(fbx.animations){
 	    	addAnimationMixer(clone);
 	    }
+	    clone.properties=fbx.properties;
 	    return clone;
 	};
 
@@ -311,16 +312,37 @@ var ResourceManager ={};
 		this.currentAction = action;
 	}
 	var loader = new THREE.FBXLoader(), loadedModels={};
+	var onLoadlisteners=[];
+	var pendings = 0;
+	function fireOnLoadEvent(){
+		if(pendings===0){
+			onLoadlisteners.forEach(function(e){ e(); })
+			onLoadlisteners.length=0;
+		}
+	}
+	ResourceManager.onLoad = function(e) {
+		onLoadlisteners.push(e);
+		if(pendings===0) fireOnLoadEvent();
+	}
+	ResourceManager.getModel = function(name) {
+		var model =loadedModels[name];
+		if(model){
+			if(model.busy) model=ResourceManager.cloneFbx(model);
+			else model.busy = true;
+		}
+		return model;
+	}
 	ResourceManager.loadModel = function(model, callback) {
 		var anims=model.animationsFiles;
 		var keys=Object.keys(anims);
 		var key_index=0;
 		if (loadedModels[model.name]) {
-			var object=cloneFbx(loadedModels[model.name]);
+			var object=ResourceManager.cloneFbx(loadedModels[model.name]);
 			initializeModel(object)
 			callback&&callback(object);
 			return object;
 		}
+		pendings++;
 		if (keys.length<1) loader.load( model.url, onLoaded);
 		else loadAnim();
 		function loadAnim() {
@@ -370,9 +392,15 @@ var ResourceManager ={};
 				object.selectionCircle.visible=false;
 				object.selectionCircle.model = object;
 				object.selectionCircle.onBeforeRender = onBeforeRender;
+				var scale = model.selectionScale;
+				if(scale) object.selectionCircle.scale.set(scale,scale,scale);
 			}
 			initializeModel(object)
+			addAnimationMixer( object );
+			pendings--;
+			object.properties=model;
 			if(callback) callback(object);
+			fireOnLoadEvent();
 		}
 		function onBeforeRender(){
 			if(this.model.entity )
@@ -384,13 +412,6 @@ var ResourceManager ={};
 			if(model.scale) object.scale.set(model.scale,model.scale,model.scale);
 			if(model.position) object.position.set(model.position.x,model.position.y,model.position.z);
 			if(model.rotation) object.rotation.set(model.rotation.x,model.rotation.y,model.rotation.z);
-			if(object.selectionCircle) {
-				var scale = model.selectionScale;
-				if(scale) {
-					object.selectionCircle.scale.set(scale,scale,scale)
-				}
-			}
-			addAnimationMixer( object );
 		}
 	}
 })();

@@ -130,7 +130,7 @@
 		targets.length=0;
 		var target;
 		var minDiatance = Infinity;
-		var distanceToSquared = Utils.distanceToSquared;
+		var distanceSqInt = Utils.distanceSqInt;
 		var teams= SceneManager.teams;
 		for (var i=0; i<teams.length;i++) {
 			var teamPlayers = teams[i];
@@ -149,7 +149,7 @@
 				for (var k=0; k< unitsLen;k++) {
 					var unit = units[k];
 					if(unit.isDead)continue;
-					var diatanceToMe= distanceToSquared(center, unit.pos);
+					var diatanceToMe= distanceSqInt(center, unit.pos);
 					var test = (radius+unit.range);
 					if (diatanceToMe < test*test) {
 						if (limit ===1 &&diatanceToMe<minDiatance) {

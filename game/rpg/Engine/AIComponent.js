@@ -3,7 +3,7 @@
 	var playerFindPathType = 0,autoFindPathType = 1, autoAttackFindPathType = 2;
 	var nextPos = new THREE.Vector3();
 	var up=new THREE.Vector3(0, 1, 0)
-	var distanceToSquared = Utils.distanceToSquared;
+	var distanceSqInt = Utils.distanceSqInt;
 	window.AIComponent=AIComponent;
 	function AIComponent(entity) {
 		this.entity = 0,
@@ -82,7 +82,7 @@
 		this.attackToMode = 0;
 		this.stopSkill();
 		this.stopAttack();
-		var distance=distanceToSquared(this.entity.pos, target.pos);
+		var distance=distanceSqInt(this.entity.pos, target.pos);
 		var attackRange = target.range+ this.entity.attackRange;
 		if(distance<=attackRange*attackRange) {// do startAttack
 			this.attackTarget=target;
@@ -215,7 +215,7 @@
 	    if (this.lastActionTime>time) { // at each animation finished
 	    	this.hasHit = false;
 	    	var chaseDistance=entity.pos.distanceToSquared(this.stopPosition);
-			var distance=distanceToSquared(entity.pos, attackTarget.pos);
+			var distance=distanceSqInt(entity.pos, attackTarget.pos);
 			var chaseRange = attackTarget.range+ entity.chaseRange;
 			var acquisitionRange = attackTarget.range+ entity.acquisitionRange;
 			var attackRange = attackTarget.range+ entity.attackRange + 3;
@@ -246,7 +246,7 @@
 				this.startSkill()
 			}
 		} else if(this.attackTarget) {
-			var distance=distanceToSquared(entity.pos,target.pos);
+			var distance=distanceSqInt(entity.pos,target.pos);
 			var acquisitionRange = target.range+ entity.acquisitionRange;
 			var attackRange = target.range+ entity.attackRange;
 			if(auto&&distance>acquisitionRange*acquisitionRange){
@@ -276,12 +276,12 @@
 			this.stopPosition.copy(this.destPosition.copy(this.entity.pos));
 		var entity=this.entity;
 		if (this.skillTarget) { // have casted a skill
-			var distance=distanceToSquared(this.skillTarget.pos,entity.pos);
+			var distance=distanceSqInt(this.skillTarget.pos,entity.pos);
 			var attackRange = this.skillTarget.range+ entity.attackRange;
 			if(distance<=attackRange*attackRange)// do start Skill
 				this.startSkill();
 		} else if(this.attackTarget) {
-			var distance=distanceToSquared(this.attackTarget.pos,entity.pos);
+			var distance=distanceSqInt(this.attackTarget.pos,entity.pos);
 			var attackRange = this.attackTarget.range+ entity.attackRange;
 			if(distance<=attackRange*attackRange)// do start Attack
 				this.startAttack();

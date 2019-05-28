@@ -12,7 +12,10 @@
 				boundingBox:{x:25, y:25, z:25},
 				topBoard:{height:40, scale:{x:30, y:3, z:1}},
 				selectable:true,
-				scale:.1//.16, r:2
+				radius: 1.5 ,
+				scale:.1,//.16, r:2
+				speed:25/1.5,
+				attackHitTime:0.36666667461395264 -.08
 		};
 		ResourceManager.loadModel(model, onLoaded);
 		//loadModel(model, onLoaded0);
@@ -29,7 +32,11 @@
 				topBoard:{height:100, scale:{x:80, y:8, z:1}},
 				selectionScale:1.7,
 				selectable:true,
-				radius: 1 , scale:.05//
+				radius: 2.5 ,
+				scale:.05,//
+				speed:25,
+				attackHitTime:0.36666667461395264 -.08
+				
 		};
 		ResourceManager.loadModel(model2, onLoaded2);
 		//units position
@@ -40,7 +47,8 @@
 			var i = 0, original=object;//55
 		    for(i=0;i<15;i++) {
 		    	object=ResourceManager.cloneFbx(original);
-				object.actions.attack.timeScale=.8;
+		    	if(object.name==='Monster1')
+		    		object.actions.attack.timeScale=.8;
 	    		object.playAction('free');
 	    		var j = i>=15?i%15:i;
 		    	object.position.copy(team1Positions[j])//rand(20,480),0, rand(20,480)

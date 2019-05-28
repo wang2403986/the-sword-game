@@ -126,14 +126,14 @@
 			aiComponent.collisionCount=0;
 			
 			if(aiComponent.findPathDiscarded) return;
-			var distanceToSquared = Utils.distanceToSquared;
+			var distanceSqInt = Utils.distanceSqInt;
 			if (aiComponent.findPathType === 2) {// auto find attack target
 				var arr=aiComponent.entity.attackTargets, tmpPos=aiComponent.entity.pos;
 				array2.length=0;
 				for(var i=0;i<arr.length;i++){
 					if(!arr[i].isDead){
 						var acquisitionRange=unit0.acquisitionRange +arr[i].range;
-						var distance=distanceToSquared(tmpPos, arr[i].pos);
+						var distance=distanceSqInt(tmpPos, arr[i].pos);
 						if(distance<acquisitionRange*acquisitionRange){
 							array2.push(arr[i]);
 							arr[array2.length-1]=arr[i];
