@@ -127,6 +127,7 @@
 			
 			if(aiComponent.findPathDiscarded) return;
 			var distanceSqInt = Utils.distanceSqInt;
+			var distanceSq = Utils.distanceSq;
 			if (aiComponent.findPathType === 2) {// auto find attack target
 				var arr=aiComponent.entity.attackTargets, tmpPos=aiComponent.entity.pos;
 				array2.length=0;
@@ -135,16 +136,15 @@
 						var acquisitionRange=unit0.acquisitionRange +arr[i].range;
 						var distance=distanceSqInt(tmpPos, arr[i].pos);
 						if(distance<acquisitionRange*acquisitionRange){
-							array2.push(arr[i]);
-							arr[array2.length-1]=arr[i];
+							var item=arr[i];
+							item._cmp=distanceSq(item.pos,tmpPos);
+							array2.push(item);
+							arr[array2.length-1]=item;
 						}
 					}
 				}
 				arr.length = array2.length;
 				arr = array2;
-				for(var i=0;i< arr.length;i++){
-					arr[i]._cmp=arr[i].pos.distanceToSquared(tmpPos);
-				}
 				selectSort(arr);
 				for(var i=0;i< 16&&i<arr.length;i++){
 					f32Array[i*3]=arr[i].pos.x; f32Array[i*3+1]=arr[i].pos.z;

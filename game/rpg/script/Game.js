@@ -2,7 +2,8 @@
 	var loader2 = new THREE.JSONLoader();
 	window.showClickEffects=function(){};
 	loader2.load("../assets/models/RallyArrow2.json", function(geometry,matls){
-		matls[0].skinning= matls[0].transparent=true;matls[0].color.setRGB(34/256,177/256,76/256);
+		matls[0].skinning= matls[0].transparent=true;
+		matls[0].color.setRGB(34/256,177/256,76/256);
 		var mesh = new THREE.SkinnedMesh(geometry, matls[0] );
 
 		mesh.scale.set(.06,.06,.06);
@@ -74,7 +75,7 @@
 		}
 	}
 	
-	new cMap().loadMap();// TODO
+	new Terrain().loadMap();// TODO
 	var selectionStart=false, isDraged=false, mouseStart=new THREE.Vector2(), touchStartX, touchStartY;
 	document.addEventListener('mousedown', function(event){
 		isDraged = false;
@@ -221,7 +222,7 @@
 			document.body.style.cursor='pointer';
 			if(intersects.length > 0 ) {
 				skillTarget = intersects[0].object.model.entity;
-				player.entity.aiComponent.setSkillTarget(skillTarget);
+				hero.entity.aiComponent.setSkillTarget(skillTarget);
 			}
 			return;
 		}

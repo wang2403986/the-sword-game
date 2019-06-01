@@ -235,7 +235,7 @@
 	    }
 	    this.lastActionTime=time;
 	};
-	
+	var endPos = new THREE.Vector3(0,0,0);
 	AIComponent.prototype.updateMoveState = function() {
 		var entity=this.entity;
 		var target= this.skillTarget || this.attackTarget, auto = !this.isLockTarget;
@@ -249,7 +249,11 @@
 			var distance=distanceSqInt(entity.pos,target.pos);
 			var acquisitionRange = target.range+ entity.acquisitionRange;
 			var attackRange = target.range+ entity.attackRange;
-			if(auto&&distance>acquisitionRange*acquisitionRange){
+			var path = this.path;
+			endPos.x=path[path.length-2], endPos.z= path[path.length-1];
+			var acquisitionRangeSq = acquisitionRange*acquisitionRange;
+			var endPosRange=Math.max(acquisitionRangeSq*.25, attackRange);
+			if(auto&& distanceSqInt(endPos,target.pos)>endPosRange && distance>acquisitionRangeSq){
 				// target is outside acquisition range, stop Chase
 				this.stopChase();
 				this.findPath(this.destPosition);
@@ -313,11 +317,11 @@
 		var position=this.entity.pos;
 //	    if (position.x<0) position.x=0;
 //	    if (position.z<0) position.z=0;
-	    var pMap = getMap();
-	    if (this.fixedHeight || null === pMap) {
+	    var terrain = getTerrain();
+	    if (this.fixedHeight || null === terrain) {
 	        return;
 	    }
-	    var mh = pMap.getHeight(position.x, position.z);
+	    var mh = terrain.getHeight(position.x, position.z);
 	    var h = mh + 0//this.lockHeight;
 //	    if (position.y > h) {
 //	    	position.y -= 9800.0*.001*elapse;//втсиоббД

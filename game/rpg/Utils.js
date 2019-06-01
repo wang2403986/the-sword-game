@@ -10,27 +10,8 @@ var Utils = {};
 		return dx*dx+dy*dy;
 	}
 	function distanceSq(pos, pos2){
-		var dx=(pos.x)-(pos2.x),dy=(pos.z)-(pos2.z);
+		var dx=pos.x-pos2.x,dy=pos.z-pos2.z;
 		return dx*dx+dy*dy;
-	}
-	var audioLoader = new THREE.AudioLoader();
-	var audioListener = new THREE.AudioListener();
-	var audiosData={};
-	function loadAudio(url, callback){
-		if(!audiosData[url]){
-			audiosData[url]={};
-			var data = audiosData[url];
-			data.listeners=[callback];
-			audioLoader.load( url, function ( buffer ) {
-				data.buffer=buffer;
-				for(var i=0;i<data.listeners.length;i++){
-					data.listeners[i](buffer);
-				}
-			} );
-		} else {
-			if(audiosData[url].buffer) callback(audiosData[url].buffer);
-			else audiosData[url].listeners.push(callback);
-		}
 	}
 	Array.prototype.remove = function (val) {
 		var index = this.indexOf(val);
@@ -72,11 +53,11 @@ var Utils = {};
 			sphere.applyMatrix4( matrixWorld );
 			if ( raycaster.ray.intersectsSphere( sphere ) === false ) continue;
 			// Check boundingBox before continuing
-			if ( geometry.boundingBox !== null ) {
-				inverseMatrix.getInverse( matrixWorld );
-				ray.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
-				if ( ray.intersectsBox( geometry.boundingBox ) === false ) continue;
-			}
+			if (geometry.boundingBox == null)geometry.computeBoundingBox();
+			inverseMatrix.getInverse( matrixWorld );
+			ray.copy( raycaster.ray ).applyMatrix4( inverseMatrix );
+			if ( ray.intersectsBox( geometry.boundingBox ) === false ) continue;
+
 			projectVector.copy(object.model.position).project(camera)
 			object.distance=projectVector.z;
 			object.object=object;
@@ -158,52 +139,29 @@ SceneManager.boundingBoxes=[];
 		units.remove(unit);
 	}
 })();
-//annie = new TextureAnimator( runnerTexture, 10, 1, 10, 75 ); // texture, #horiz, #vert, #total, duration.
-//function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
-//{	
-//	// note: texture passed by reference, will be updated by the update function.
-//		
-//	this.tilesHorizontal = tilesHoriz;
-//	this.tilesVertical = tilesVert;
-//	// how many images does this spritesheet contain?
-//	//  usually equals tilesHoriz * tilesVert, but not necessarily,
-//	//  if there at blank tiles at the bottom of the spritesheet. 
-//	this.numberOfTiles = numTiles;
-//	texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
-//	texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
-//
-//	// how long should each image be displayed?
-//	this.tileDisplayDuration = tileDispDuration;
-//
-//	// how long has the current image been displayed?
-//	this.currentDisplayTime = 0;
-//
-//	// which image is currently being displayed?
-//	this.currentTile = 0;
-//		
-//	this.update = function( milliSec )
-//	{
-//		//milliSec=1000 * milliSec
-//		this.currentDisplayTime += milliSec;
-//		while (this.currentDisplayTime > this.tileDisplayDuration)
-//		{
-//			this.currentDisplayTime -= this.tileDisplayDuration;
-//			this.currentTile++;
-//			if (this.currentTile == this.numberOfTiles)
-//				this.currentTile = 0;
-//			var currentColumn = this.currentTile % this.tilesHorizontal;
-//			texture.offset.x = currentColumn / this.tilesHorizontal;
-//			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
-//			texture.offset.y = currentRow / this.tilesVertical;
-//		}
-//	};
-//}
 var ResourceManager ={};
 (function() {
-	function addAnimationMixer(object) {
+	var audioLoader = new THREE.AudioLoader();
+	var audioListener = new THREE.AudioListener();
+	var audiosData={};
+	ResourceManager.audioListener=audioListener;
+	ResourceManager.loadAudio=function(url, callback){
+		if(!audiosData[url]){
+			var data =audiosData[url]={listeners:[callback]};
+			audioLoader.load( url, function ( buffer ) {
+				data.buffer=buffer;
+				for(var i=0;i<data.listeners.length;i++)
+					data.listeners[i](buffer);
+			} );
+		} else {
+			if(audiosData[url].buffer) callback(audiosData[url].buffer);
+			else audiosData[url].listeners.push(callback);
+		}
+	}
+
+	function initAnimationMixer(object) {
 		if(object.animations && object.animations.length){
 			var mixer=object.mixer = new THREE.AnimationMixer( object );
-//			mixers.push( object.mixer );
 			var actions =object.actions = {};
 			object.animations.forEach(function (clip){
 				var action = mixer.clipAction( clip );
@@ -230,7 +188,6 @@ var ResourceManager ={};
 	            skinnedMeshes[node.name] = node;
 	        }
 	    });
-
 	    var cloneBones = {};
 	    var cloneSkinnedMeshes = {};
 
@@ -238,7 +195,6 @@ var ResourceManager ={};
 	        if (node.isBone) {
 	            cloneBones[node.name] = node;
 	        }
-
 	        if (node.isSkinnedMesh) {
 	            cloneSkinnedMeshes[node.name] = node;
 	        }
@@ -252,17 +208,11 @@ var ResourceManager ={};
 	        var cloneSkinnedMesh = cloneSkinnedMeshes[name];
 
 	        var orderedCloneBones = [];
-
 	        for (var i = 0; i < skeleton.bones.length; i++) {
 	            var cloneBone = cloneBones[skeleton.bones[i].name];
 	            orderedCloneBones.push(cloneBone);
 	        }
 	        cloneSkinnedMesh.bind(new THREE.Skeleton(orderedCloneBones));
-	        //cloneSkinnedMesh.bind(new THREE.Skeleton(orderedCloneBones, skeleton.boneInverses), cloneSkinnedMesh.matrixWorld);
-
-	        // For animation to work correctly:
-	        //clone.skeleton.bones.push(cloneSkinnedMesh);
-	        //(_clone$skeleton$bones = clone.skeleton.bones).push.apply(_clone$skeleton$bones, orderedCloneBones);
 	    }
 	    clone.playAction = fbx.playAction;
 	    if(fbx.selectionCircle){
@@ -274,7 +224,7 @@ var ResourceManager ={};
 	    }
 	    if(fbx.boundingBoxGeometry) clone.boundingBoxGeometry=fbx.boundingBoxGeometry;
 	    if(fbx.animations){
-	    	addAnimationMixer(clone);
+	    	initAnimationMixer(clone);
 	    }
 	    clone.properties=fbx.properties;
 	    return clone;
@@ -327,8 +277,8 @@ var ResourceManager ={};
 	ResourceManager.getModel = function(name) {
 		var model =loadedModels[name];
 		if(model){
-			if(model.busy) model=ResourceManager.cloneFbx(model);
-			else model.busy = true;
+			if(model.busy) return ResourceManager.cloneFbx(model);
+			model.busy = true;
 		}
 		return model;
 	}
@@ -338,7 +288,7 @@ var ResourceManager ={};
 		var key_index=0;
 		if (loadedModels[model.name]) {
 			var object=ResourceManager.cloneFbx(loadedModels[model.name]);
-			initializeModel(object)
+			initModel(object)
 			callback&&callback(object);
 			return object;
 		}
@@ -369,7 +319,8 @@ var ResourceManager ={};
 				}
 			}
 			object.playAction = playAction;
-			object.meshs=[];var helperObject=[];
+			object.meshs=[];
+			var helperObject=[];
 			object.traverse( function ( child ) {
 				if ( child.isMesh ) {
 					child.castShadow = true; //child.receiveShadow = true;
@@ -395,8 +346,8 @@ var ResourceManager ={};
 				var scale = model.selectionScale;
 				if(scale) object.selectionCircle.scale.set(scale,scale,scale);
 			}
-			initializeModel(object)
-			addAnimationMixer( object );
+			initModel(object)
+			initAnimationMixer( object );
 			pendings--;
 			object.properties=model;
 			if(callback) callback(object);
@@ -408,10 +359,10 @@ var ResourceManager ={};
 					this.material.color.setRGB( 0,1,0);
 				else this.material.color.setRGB( 1,0,0);
 		}
-		function initializeModel( object ) {
+		function initModel( object ) {
 			if(model.scale) object.scale.set(model.scale,model.scale,model.scale);
-			if(model.position) object.position.set(model.position.x,model.position.y,model.position.z);
-			if(model.rotation) object.rotation.set(model.rotation.x,model.rotation.y,model.rotation.z);
+			if(model.position) object.position.copy(model.position);
+			if(model.rotation) object.rotation.copy(model.rotation);
 		}
 	}
 })();

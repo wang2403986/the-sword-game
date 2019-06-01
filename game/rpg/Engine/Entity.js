@@ -122,8 +122,26 @@
 	iEntity.prototype.addAIComponent=function() { new AIComponent(this); };
 	
 	iEntity.prototype.addTopBoard =function(options) {
-		this.topBoard=new TopBoard(this, options);
+		if (options) {
+			this.topBoard=new TopBoard(this, options);
+		}
 	};
+
+	var gloryGeometry = new THREE.PlaneBufferGeometry( 4, 4 );
+	var vertices = gloryGeometry.attributes.position.array;
+    for ( var j = 0, l = vertices.length; j < l; j += 3 ) {
+    	vertices[ j + 2 ]=-vertices[ j + 1 ];
+    	vertices[ j + 1 ]=0;
+	}
+	var gloryMap = THREE.ImageUtils.loadTexture('../assets/materials/Rune1d.png');
+	var gloryMaterial = new THREE.MeshBasicMaterial( {color: 0xff0000,depthTest: true,depthWrite:false, map: gloryMap,//alphaMap
+		transparent: true,   blending: THREE.AdditiveBlending } );
+	iEntity.prototype.addGlory =function(options) {
+		var glory = new THREE.Mesh( gloryGeometry, gloryMaterial );
+		glory.renderOrder = -1;
+    	glory.model=this.model;
+    	model.glory=glory;
+	}
 
 	iEntity.prototype.getNearbyUnits  = function(center, radius, limit, friendly,isAutoAttack) {
 		var targets = isAutoAttack ? this.attackTargets : array1;

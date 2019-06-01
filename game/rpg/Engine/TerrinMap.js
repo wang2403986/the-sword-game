@@ -1,7 +1,7 @@
-cMap.g_map_ = null;
-function getMap()
+Terrain.instance = null;
+function getTerrain()
 {
-    return cMap.g_map_;
+    return Terrain.instance;
 }
 
 /** œﬂ–‘≤Â÷µ*/
@@ -10,8 +10,8 @@ function lerp( a,  b,  t)
    return a - (a*t) + (b*t);
 }
 //////////////////////////////////////////////////////////////////////////
-function cMap(source){
-	cMap.g_map_ = this;
+function Terrain(source){
+	Terrain.instance = this;
 	var g_map_ = this, m_pTerrin,
     //m_pTData = new TerrinData(),
     m_pSource = source,
@@ -122,34 +122,34 @@ function cMap(source){
 //	        m_showLevel = m_nodeR/2;
 //	    }
 //	}
-	
-	 this.xMin=function()
-	{
-	    return -this.width()/2.0;
-	}
-	
-	this.xMax=function()
-	{
-	    return this.width()/2.0;
-	}
-	
-	this.zMin=function()
-	{
-	    return -this.height()/2.0;
-	}
-	
-	this.zMax=function()
-	{
-	    return this.height()/2.0;
-	}
-	
-	this.width=function()
-	{
-	    return /*(float)*/m_pTData.width();
-	}
-	
-	this.height=function()
-	{
-	    return /*(float)*/m_pTData.height();
-	}
+//	
+//	 this.xMin=function()
+//	{
+//	    return -this.width()/2.0;
+//	}
+//	
+//	this.xMax=function()
+//	{
+//	    return this.width()/2.0;
+//	}
+//	
+//	this.zMin=function()
+//	{
+//	    return -this.height()/2.0;
+//	}
+//	
+//	this.zMax=function()
+//	{
+//	    return this.height()/2.0;
+//	}
+//	
+//	this.width=function()
+//	{
+//	    return /*(float)*/m_pTData.width();
+//	}
+//	
+//	this.height=function()
+//	{
+//	    return /*(float)*/m_pTData.height();
+//	}
 }
