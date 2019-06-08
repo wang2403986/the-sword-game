@@ -13,10 +13,11 @@ function init() {
 	document.body.appendChild( container );
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-	camera.position.set(259, 47, 290);
+	camera.position.set(231.7, 69.3, 332.3);
 	controls = new THREE.OrbitControls( camera );
-	controls.target.copy( controls.target0.set( 259, -15, 221 ) );
+	controls.target.copy( controls.target0.set( 231.7, -15,  238.4 ) );
 	controls.screenSpacePanning = controls.enableRotate = false;
+	controls.enablePan = false;
 	controls.update();
 //	controls = new THREE.PointerLockControls( camera );
 //	scene.add(controls.getObject());
@@ -27,11 +28,13 @@ function init() {
 	light = new THREE.DirectionalLight( 0xffffff );
 	light.castShadow = true;
 	
-	light.position.set(390, 260, 210)
-	light.shadow.camera.top = -100;//       350,-100
-	light.shadow.camera.bottom = -300;//    150,-300
+	light.position.set(440, 60, 309.3);
+	light.target.position.set(70, -250, 298.29);
+	light.shadow.camera.top = 0;//       350,-100
+	light.shadow.camera.bottom = 180;//    150,-300
 	light.shadow.camera.left = 0;//         100,0
-	light.shadow.camera.right = -200;//     300,-200
+	light.shadow.camera.right = 180;//     300,-200
+	shadow=light.shadow;
 	
 	light.shadow.mapSize.height = 2048;
 	light.shadow.mapSize.width = 2048;
@@ -79,25 +82,6 @@ function animate() {
     window.now = now;
     keyboard.update();
     SceneManager.update(fElapse);
-	if(window.selectionCircles){
-		selectionCircles.children.length=0;
-		terrin.renderOrder = -2;
-		var units = SceneManager.units;
-		for (var i=0; i<units.length;i++) {
-			var unit = units[i];
-			var model=unit.model;
-			var circle=model.selectionCircle;
-			if(model.glory){
-				selectionCircles.add(model.glory);
-				model.glory.position.set(unit.pos.x,unit.pos.y+.6,unit.pos.z);
-			}
-			if(circle&&circle.visible){
-				selectionCircles.add(circle);
-				circle.renderOrder = -1;
-				circle.position.set(unit.pos.x,unit.pos.y,unit.pos.z);
-			}
-		}
-	}
 	if(camera) {
 		camera.update && camera.update();
 		renderer.render( scene, camera );
@@ -130,39 +114,29 @@ document.addEventListener( 'mouseleave', function ( event ) {
 
 (function(){
 //	var gui = new dat.GUI();
-//	light.shadow.camera;light.position;
+//	light.shadow.camera;
+//	light.position;
 //	var controller = light.shadow.camera;
-//	    var f1 = gui.addFolder('Shadow camera');
-////	    f1.add(controller, 'top', -250, 250).step(10).onChange( function() {
-////	    	light.shadow.camera.updateProjectionMatrix()
-////	    });
-////	    f1.add(controller, 'bottom', -250, 250).step(10).onChange( function() {
-////	    	light.shadow.camera.updateProjectionMatrix()
-////	    });
-////	    f1.add(controller, 'left', -250, 250).step(10).onChange( function() {
-////	    	light.shadow.camera.updateProjectionMatrix()
-////	    });
-////	    f1.add(controller, 'right', -250, 250).step(10).onChange( function() {
-////	    	light.shadow.camera.updateProjectionMatrix()
-////	    });
+//	    var f1 = gui.addFolder('light pos');
 //	    var controller2 = light.position;
-//	    f1.add(controller2, 'x', -250, 800).step(10).onChange( function() {
+//	    f1.add(controller2, 'x', -500, 800).step(10).onChange( function() {
 //	    	
 //	    });
-//	    f1.add(controller2, 'y', -250, 800).step(10).onChange( function() {
+//	    f1.add(controller2, 'y', -500, 800).step(10).onChange( function() {
 //	    	
 //	    });
-//	    f1.add(controller2, 'z', -250, 800).step(10).onChange( function() {
+//	    f1.add(controller2, 'z', -500, 800).step(10).onChange( function() {
 //	    	
 //	    });
-//	    var controller1 = {x:0,y:0,z:0};
-//	    f1.add(controller1, 'x', -250, 250).step(10).onChange( function() {
-//	    	light.lookAt(controller1.x,controller1.y,controller1.z)
+//	    var controller1 = light.target.position;
+//	    var f1 = gui.addFolder('light target');
+//	    f1.add(controller1, 'x', -500, 500).step(10).onChange( function() {
+//	    	//light.lookAt(controller1.x,controller1.y,controller1.z)
 //	    });
-//	    f1.add(controller1, 'y', -250, 250).step(10).onChange( function() {
-//	    	light.lookAt(controller1.x,controller1.y,controller1.z)
+//	    f1.add(controller1, 'y', -500, 500).step(10).onChange( function() {
+//	    	//light.lookAt(controller1.x,controller1.y,controller1.z)
 //	    });
-//	    f1.add(controller1, 'z', -250, 250).step(10).onChange( function() {
-//	    	light.lookAt(controller1.x,controller1.y,controller1.z)
-//	    });
+//	    f1.add(controller1, 'z', -500, 500).step(10).onChange( function() {
+//	    	//light.lookAt(controller1.x,controller1.y,controller1.z)
+//	    });//
 })();

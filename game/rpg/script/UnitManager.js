@@ -102,14 +102,16 @@
 		}
 		
 		var hero = {teamId:1, playerId:1,model:'hero1',maxHP:1000, glory:{}, pos:{x:281.8, y: 0, z: 259.4}};
+		var hero2 = {teamId:1, playerId:1,model:'hero1',maxHP:1000, glory:{}, pos:{x:286.8, y: 0, z: 269.4}};
 		units.push(hero);
+		units.push(hero2);
 		
 		
 		for(var ii=0;ii<models.length;ii++)
 			ResourceManager.loadModel(models[ii]);
 		ResourceManager.onLoad(onLoaded);
 		function onLoaded() {
-			var terrain = getTerrain();
+			var terrain = SceneManager.getTerrain();
 			for (var ii=0;ii<units.length;ii++){
 				var unit = units[ii];
 				var model=ResourceManager.getModel(unit.model);
@@ -127,7 +129,6 @@
 		    	entity.setModel(model)
 		    	entity.pos.copy(unit.pos);
 		    	entity.pos.y = terrain.getHeight(entity.pos.x, entity.pos.z);
-		    	entity.pos.height = entity.pos.y;
 		    	entity.setRadius(unit.radius||model.properties.radius||entity.radius);
 		    	entity.speed=unit.speed||model.properties.speed||entity.speed;
 		    	entity.attackHitTime= model.properties.attackHitTime||entity.attackHitTime;

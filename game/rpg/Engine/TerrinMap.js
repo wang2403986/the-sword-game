@@ -1,5 +1,4 @@
-Terrain.instance = null;
-function getTerrain()
+SceneManager.getTerrain=function()
 {
     return Terrain.instance;
 }
@@ -50,9 +49,12 @@ function Terrain(source){
         plane.receiveShadow = true;
         terrin2 = plane;
         terrin= plane;
-        selectionCircles = new THREE.Object3D();
         scene.add(plane);
-        scene.add(selectionCircles);
+        
+        var selectionCircles = new THREE.Object3D();
+    	SceneManager.selectionCircles = selectionCircles;
+    	scene.add(SceneManager.selectionCircles);
+    	
 	    m_usefull = true;
 	    return true;
 	}

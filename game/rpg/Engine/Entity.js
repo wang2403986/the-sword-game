@@ -140,7 +140,7 @@
 		var glory = new THREE.Mesh( gloryGeometry, gloryMaterial );
 		glory.renderOrder = -1;
     	glory.model=this.model;
-    	model.glory=glory;
+    	this.model.glory=glory;
 	}
 
 	iEntity.prototype.getNearbyUnits  = function(center, radius, limit, friendly,isAutoAttack) {

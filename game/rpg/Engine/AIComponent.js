@@ -252,7 +252,7 @@
 			var path = this.path;
 			endPos.x=path[path.length-2], endPos.z= path[path.length-1];
 			var acquisitionRangeSq = acquisitionRange*acquisitionRange;
-			var endPosRange=Math.max(acquisitionRangeSq*.25, attackRange);
+			var endPosRange=Math.max(acquisitionRangeSq*.25, attackRange+2);
 			if(auto&& distanceSqInt(endPos,target.pos)>endPosRange && distance>acquisitionRangeSq){
 				// target is outside acquisition range, stop Chase
 				this.stopChase();
@@ -313,11 +313,10 @@
 		}
 	}
 	AIComponent.prototype.updateHeight=function(elapse) {
-		if(this.entity===undefined) return;
 		var position=this.entity.pos;
 //	    if (position.x<0) position.x=0;
 //	    if (position.z<0) position.z=0;
-	    var terrain = getTerrain();
+	    var terrain = SceneManager.getTerrain();
 	    if (this.fixedHeight || null === terrain) {
 	        return;
 	    }
@@ -328,7 +327,7 @@
 //	    }
 	    if (position.y !== h) {
 	    	position.y = h;
-	    	position.height=h;
+	    	//position.height=h;
 	    }
 	}
 	var v_look=new THREE.Vector3(0, 1, 0);
@@ -362,8 +361,7 @@
 		dir.y=0;
 		var lookAt =  v_lookAt.copy(dir), entity=this.entity;
 		var pos = entity.model.position;
-		pos.y=0;
-		lookAt.add(pos);
+		lookAt.add(pos)//.y=0;
 		this.rotStart.copy(entity.model.quaternion);
 		entity.model.lookAt(lookAt);
 	    this.rotTarget.copy(entity.model.quaternion);
@@ -482,7 +480,7 @@
         		if(aiComponent&&aiComponent.autoMove&&!aiComponent.isWaiting) this.setWaitTime();
     			this.needsFindPath=true;
         	} else {
-        		this.entity.pos.set(this.nextPos.x, 0, this.nextPos.z);
+        		this.entity.pos.x=this.nextPos.x, this.entity.pos.z=this.nextPos.z;
         		this.moveToElapse = moveToElapse;
         	}
         }
@@ -521,7 +519,7 @@
 		
 		this.calculateNextPos(fElapse);
 		if(!this.getCollisionObject(0)){
-			pos.set(nextPos.x, 0, nextPos.z);
+			pos.x=nextPos.x, pos.z=nextPos.z;
     		this.moveToElapse = fElapse;
 		} else this.needsFindPath=true;
 	};

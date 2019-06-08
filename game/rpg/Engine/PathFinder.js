@@ -25,9 +25,9 @@
 		var tasks = [];
 		this.findPath = function(unit, type) {
 			tasks.push(unit);
-			if(type===0 && tasks.length>20){
+			if(type===0 && tasks.length>15){
 				tasks.length = tasks.length -1;
-				tasks.splice(8, 0, unit);
+				tasks.splice(5, 0, unit);
 			}
 		};
 		/**
@@ -62,6 +62,7 @@
 			var nextPos=unit.nextPos;
 			var x1= (nextPos.x)>>0;
 			var y1= (nextPos.z)>>0;
+			if(x1===unit.pos.x>>0 && y1===unit.pos.z>>0) return;
 			var r1=unit.radius;
 			x1 = x1- (r1>>0), y1 = y1-(r1>>0);
 			var w1=2*r1;
@@ -70,14 +71,13 @@
 			var length = units.length;
 			for (var j=0; j<length;j++) {
 				var b = units[j];
-				if(b === unit) continue;
 				var radius=b.radius;
 				pos=b.pos;
 				var centerX=(pos.x)>>0, centerY=(pos.z)>>0,
 				  startX = centerX- (radius>>0), startY = centerY-(radius>>0);
 				var w2=2*radius;
 				collision =isCollisionWithRect(x1,  y1,  w1,  startX, startY, w2);
-				if (collision) {
+				if (collision && b !== unit) {
 					result = b;
 					aiComponent=b.aiComponent;
 					if(!preferMovingUnit || (aiComponent&&aiComponent.autoMove && !aiComponent.isWaiting)){
@@ -95,22 +95,21 @@
 			if(memory===undefined || !tasks.length) return;
 			var unit0 =tasks.shift();
 			var scale = scaleFactor;
-			var i=0, unitsNumber=0;
 			var aiComponent = unit0.aiComponent;
 			var avoidance=aiComponent.attackTarget||aiComponent.skillTarget||aiComponent.findPathType === 2;
 			avoidance=avoidance || aiComponent.needsFindPath;
-			var units = SceneManager.units
+			var units = SceneManager.units, i=0;
 			for (var j=0; j<units.length;j++) {
 				var obstacleUnit = units[j];
 				var component=obstacleUnit.aiComponent;
-				if (obstacleUnit === unit0 ||
-					(!avoidance&&component&&component.autoMove&&!component.isWaiting)) continue;
+				if ((!avoidance&&component&&component.autoMove&&!component.isWaiting)
+					||obstacleUnit === unit0) continue;
 				objects[i]=obstacleUnit.pos.x;
 				objects[i+1]=obstacleUnit.pos.z;
 				objects[i+2]= obstacleUnit.radius;
 				i+=3;
-				unitsNumber++;
 			}
+			var unitsNumber= i/3;
 			var target = aiComponent.findPathPosition;
 			if(aiComponent.findPathType === 1) target=aiComponent.destPosition;
 			

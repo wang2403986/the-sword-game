@@ -83,6 +83,27 @@ SceneManager.boundingBoxes=[];
 		for(var i=0;i<updateTaskList.length;i++) {
 			updateTaskList[i].update(fElapse);
 		}
+		
+		var selectionCircles=SceneManager.selectionCircles;
+		if(selectionCircles){
+			selectionCircles.children.length=0;
+			terrin.renderOrder = -2;
+			var units = SceneManager.units;
+			for (var i=0; i<units.length;i++) {
+				var unit = units[i];
+				var model=unit.model;
+				var circle=model.selectionCircle;
+				if(model.glory){
+					selectionCircles.add(model.glory);
+					model.glory.position.set(unit.pos.x,unit.pos.y+.6,unit.pos.z);
+				}
+				if(circle&&circle.visible){
+					selectionCircles.add(circle);
+					circle.renderOrder = -1;
+					circle.position.set(unit.pos.x,unit.pos.y,unit.pos.z);
+				}
+			}
+		}
 	}
 	SceneManager.add = function(e){
 		scene.add(e);

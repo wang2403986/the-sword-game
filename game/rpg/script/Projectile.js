@@ -7,13 +7,13 @@ function Projectile(source, attackTarget, m_speed, gravity) {
 	var position=source,target=attackTarget;
 	if(position.x===undefined)
 		position=source.pos,target=attackTarget.pos;
-	var y = position.height?position.height:0;
+	var y = position.y?position.y:0;
 	var transform,totalTime,time=0,verticalSpeed, g = 9.8*5, speed = 20, angleSpeed, angle;
 	
 	var direction= new THREE.Vector3();
 	var tmp1= new THREE.Vector3();
-	var startPos= new THREE.Vector3().set(position.x, position.height+ 6, position.z);
-	var endPos= new THREE.Vector3().set(target.x, target.height+ 6, target.z); 
+	var startPos= new THREE.Vector3().set(position.x, position.y+ 6, position.z);
+	var endPos= new THREE.Vector3().set(target.x, target.y+ 6, target.z); 
 //	startPos.y=endPos.y= y + 6;
 	var lastPos= new THREE.Vector3().copy(startPos);
 	
